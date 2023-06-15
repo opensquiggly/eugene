@@ -206,3 +206,10 @@ The creator of Zoekt used the following tag line in his documentation:
 Here in America, everyone knows that Popeye the Sailor Man gets strong by eating spinach,
 and so our names are based on this theme. Eugene is named after the character Eugene the Jeep
 in the comic series.
+
+We also like that the name Popeye bids a friendly salute to the now discontinued Atlassian
+code search tool named FishEye. We always wondered why Atlassian didn't keep investing in
+FishEye; perhaps it was just too far ahead of its time. In today's environment, with a
+resurgence of interest in internal developer portals and platforms, and the strong need to
+find ways to cope with the ever increasing complexity of software projects, we think good code
+searching engines might be poised for a comeback.
