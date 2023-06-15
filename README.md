@@ -175,6 +175,23 @@ the amount of memory used can be controlled more carefully. The goal is to make 
 indexing run very fast even on small memory VM instances, and to never produce out of
 memory errors.
 
+# What about ElasticSearch or Lucene.NET?
+An astute reader might wonder if what we just described doesn't sound a whole lot like
+what ElasticSearch and Lucene.NET already do. Couldn't we use one of those to accomplish
+what we're describing?
+
+Yes, in theory, ElasticSearch and Lucene.NET do similar things, and should, at least in
+theory, work for what we need. In practice though, it just doesn't work well. Those
+solutions are too heavy-weight and are not optimized enough to do the kind of high volume,
+large repository regex code searching that we desire.
+
+In fact, our initial implementation for OpenSquiggly's code search was based on using
+ElasticSearch to build trigram indexes. It did work, but the performance was lackluster,
+required a lot of memory, and it was clear that the solution just wasn't going to scale
+as we needed it to. When it comes to code searching, customers are looking to index thousands, 
+or perhaps even hundreds of thousands of code repositories. A more general purpose solution 
+like ElasticSearch just can't cope with that kind of scale.
+
 # Where Did the Names Come From?
 Zoekt is a Dutch word that means "seek".
 
