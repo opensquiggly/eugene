@@ -113,27 +113,29 @@ Zoekt looks for literals using trigrams. Trigrams are sequences of three letters
 * The trigrams for "foxhound" are: fox, oxh, xho, hou, oun, und
 
 Suppose we're looking for all documents that contain the string literal "quickly".
-We can start by finding all documents that contain the trigram "qui".
 
 First we get a list of all the documents that contain the leading trigram, "qui".
 Then we get another list of all the documents containing the trailing trigram, "kly" 
-and see if the trigram "kly" exists at position qui + 4.
+and see if the trigram "kly" exists at position qui + 4. Then we perform the interesection
+of these two lists. Finally, we check the document to see if it truly contains
+the full literal "quickly" at position qui.
 
-In actuality we don't have to search for leading and trailing trigrams, we can
-search for any two lists of trigrams and intersect the lists to find the documents
-that contain both matches. This observation allows for some optimizations - we
-can search for the least frequently occurring trigrams to minimize the number of
-documents we need to search.
+In actuality we don't have to search for specifically leading and trailing trigrams, we 
+can search for any two trigrams of our choosing within the literal. As long as we
+have two lists of trigrams, we can intersect the list and hopefully wind up with a 
+relatively small list of matching documents. This observation allows for some 
+optimizations - we can search for the least frequently occurring trigrams to minimize 
+the number of documents we need to search.
 
 If we carefully arrange the documents so that they always come back ordered by
-file ids, then intersecting the two lists can be very fast because we can skip
+sequential file ids, then intersecting the two lists can be very fast because we can skip
 over large numbers of unmatched documents as we perform the intersection.
 
 This is why we need a custom file format that we have fine grained control over.
 We want to iterate over the indexes in very specific ways, with some strategically
 applied optimizations, to return results back to the user very quickly.
 
-So that's what Zoekt does. It builds up these dictionaries and then does all the other
+So that's what Zoekt does. It builds up these indexes and then does all the other
 necessary work to use them to look up literals and run regex searches on candidate
 documents.
 
@@ -151,6 +153,9 @@ memory, and whether it does or does not use a lot of memory. According to some d
 released by Zoekt's current maintainer, memory usage in Zoekt is potentially problematic.
 If the Zoekt instance is not given enough memory, it may produce out-of-memory errors.
 
+Zoekt also imposes some annoying limitations to limit its memory usage. It breaks up the
+index into shards, with one repo per shard, and the sets the maximum size of a shard to 1GB.
+
 In the world of cloud providers, as of this writing in the year 2023, memory is still
 quite expensive and adds up quickly. If you need a VM with 4GB of memory, Azure or AWS
 will give that to you for around $70/month or so. But if you want a 32GB VM, that might
@@ -167,7 +172,7 @@ That's the problem we're trying to address with Eugene, Spinach, and Popeye.
 We wanted a way to build these trigram indexes with clean, flexible, easy to modify C#
 code, and also have a way to put an LRU cache in front of the data structures so that
 the amount of memory used can be controlled more carefully. The goal is to make the
-indexing run very fast even on small memory VM instances, and to never product out of
+indexing run very fast even on small memory VM instances, and to never produce out of
 memory errors.
 
 # Where Did the Names Come From?
@@ -181,6 +186,6 @@ The creator of Zoekt used the following tag line in his documentation:
 ("seek, and ye shall eat spinach" - My primary school teacher)
 ```
 
-Here in America, everyone knows that Popeye the Sailorman gets strong by eating spinach,
+Here in America, everyone knows that Popeye the Sailor Man gets strong by eating spinach,
 and so our names are based on this theme. Eugene is named after the character Eugene the Jeep
 in the comic series.
