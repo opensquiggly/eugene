@@ -21,9 +21,15 @@ the data.
 One such use case, and the use case that was at the forefront of our
 minds when we started Eugene, was to build a high performance trigram
 text indexing library that can be used to quickly search for regular
-expressions across a very large corpus of code repositories. However,
-Eugene is a general purpose library that can find broad applicability
-in many domains of work.
+expressions across a very large corpus of code repositories. To do that,
+we need a way to build up a customized, specialized index that can store
+trigram text indexes for fast retrieval.
+
+That's just one sample use case, however. Eugene is a general purpose 
+library that can find broad applicability in many domains of work. Any
+time you need fine grained control over a specialized data structure that
+doesn't fit neatly into other persisting solutions, Eugene may be a good
+solution for your project.
 
 # Sister Projects
 Eugene is one part of a series of projects designed to deliver high
@@ -73,7 +79,7 @@ we are running a regular expression search for:
 quickly.*browning.*foxhound
 ```
 
-Admittedly this is a bit of a contrived example, but its useful to illustrate
+Admittedly this is a bit of a contrived example, but it's useful to illustrate
 the point.
 
 First, Zoekt extracts the three known literals from the string, getting:
@@ -89,11 +95,23 @@ a regex search over the file to see if it matches the full regex.
 Okay, but how does it quickly find those matching files? Now we're getting to the
 heart of the matter with this problem.
 
+In a nutshell, Zoekt builds up an index of trigrams that it can quickly read off
+of disk to search for string literals using their trigrams. Zoekt doesn't document
+their file format in very much detail. Their design document describes it in
+broad brush strokes, but the details are sketchy.
+
+What we needed was a way to do the same thing in C#, except we thought it would be
+nice if in the process we abstracted out the reusable, general purpose data structures
+that we needed into a separate library. This would make the Spinach and Popeye
+code much cleaner and easier to improve it over time. Thus, Eugene was born.
+
+# More About How Zoekt Works
+
 Zoekt looks for literals using trigrams. Trigrams are sequences of three letters.
 
-The trigrams for "quickly" are: qui, uic, ick, ckl, kly
-The trigrams for "browning" are: bro, row, own, wni, nin, ing
-The trigrams for "foxhound" are: fox, oxh, xho, hou, oun, und
+* The trigrams for "quickly" are: qui, uic, ick, ckl, kly
+* The trigrams for "browning" are: bro, row, own, wni, nin, ing
+* The trigrams for "foxhound" are: fox, oxh, xho, hou, oun, und
 
 Suppose we're looking for all documents that contain the string literal "quickly".
 We can start by finding all documents that contain the trigram "qui".
