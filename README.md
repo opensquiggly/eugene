@@ -92,21 +92,20 @@ and then goes about finding all the files in the corpus that contain these three
 literals. Once it finds a file with all three of these string literals, it runs
 a regex search over the file to see if it matches the full regex.
 
-Okay, but how does it quickly find those matching files? Now we're getting to the
+Okay, but how does it quickly find those matching files? Aha! Now we're getting to the
 heart of the matter with this problem.
 
 In a nutshell, Zoekt builds up an index of trigrams that it can quickly read off
 of disk to search for string literals using their trigrams. Zoekt doesn't document
-their file format in very much detail. Their design document describes it in
+their file format in very much detail - their design document describes it in
 broad brush strokes, but the details are sketchy.
 
 What we needed was a way to do the same thing in C#, except we thought it would be
 nice if in the process we abstracted out the reusable, general purpose data structures
-that we needed into a separate library. This would make the Spinach and Popeye
+that we needed into a separate library. Doing so would make the Spinach and Popeye
 code much cleaner and easier to improve it over time. Thus, Eugene was born.
 
 # More About How Zoekt Works
-
 Zoekt looks for literals using trigrams. Trigrams are sequences of three letters.
 
 * The trigrams for "quickly" are: qui, uic, ick, ckl, kly
@@ -116,26 +115,23 @@ Zoekt looks for literals using trigrams. Trigrams are sequences of three letters
 Suppose we're looking for all documents that contain the string literal "quickly".
 We can start by finding all documents that contain the trigram "qui".
 
-For any documents that contain the trigram qui, we look to see if that document
-also contains the trigram "kly" at position qui + 4. If it does, we look to see
-if the full literal "quickly" exists starting at position qui.
+First we get a list of all the documents that contain the leading trigram, "qui".
+Then we get another list of all the documents containing the trailing trigram, "kly" 
+and see if the trigram "kly" exists at position qui + 4.
 
-Once we find the same document that contains all necessary literals, only then
-do we run the slow regex query over the candidate document to determine if there
-truly is a match of the regex.
+In actuality we don't have to search for leading and trailing trigrams, we can
+search for any two lists of trigrams and intersect the lists to find the documents
+that contain both matches. This observation allows for some optimizations - we
+can search for the least frequently occurring trigrams to minimize the number of
+documents we need to search.
 
-What's needed, then, is a way to index documents by trigrams. But what we really
-need are two dictionaries, stored some how, some way (arrays, linked lists, hashtables,
-binary trees, b+trees, trie trees, whatever). At the level of the application code, we don't
-necessarily care how those dictionaries are implemented. We just want them to be fast
-and have a well abstracted API that we can code against.
+If we carefully arrange the documents so that they always come back ordered by
+file ids, then intersecting the two lists can be very fast because we can skip
+over large numbers of unmatched documents as we perform the intersection.
 
-Dictionary 1: For a given trigram, give me all the files that contain that trigram
-Dictionary 2: For a given file, give me all the trigrams in that file
-
-We can use the first dictionary to find all the files that match the leading trigram
-of the target literal. Then for each one of those files, we use Dictionary 2 to discover
-whether that file contains the trailing trigram of the target literal.
+This is why we need a custom file format that we have fine grained control over.
+We want to iterate over the indexes in very specific ways, with some strategically
+applied optimizations, to return results back to the user very quickly.
 
 So that's what Zoekt does. It builds up these dictionaries and then does all the other
 necessary work to use them to look up literals and run regex searches on candidate
@@ -149,11 +145,11 @@ will be needed. Zoekt is aiming to provide lightning fast code searching that ca
 thousands of results in millisecond timeframes, so disk access times become significant
 on those scales.
 
-In order to reduce disk accesses, Zoekt uses a lot of memory to cache those indexes.
-It doesn't seem to have any mechanisms for selectively caching portions of the index,
-it basically just keeps the whole index in memory. That means, if you have a large
-corpus of repositories, your Zoekt instance needs to have a lot of memory. If you don't
-give Zoekt enough memory, it will produce out-of-memory errors.
+In order to reduce disk accesses, Zoekt performs some vaguely documented magic. The
+documentation is a little fuzzy on whether it does or does not cache the indexes in
+memory, and whether it does or does not use a lot of memory. According to some documents
+released by Zoekt's current maintainer, memory usage in Zoekt is potentially problematic.
+If the Zoekt instance is not given enough memory, it may produce out-of-memory errors.
 
 In the world of cloud providers, as of this writing in the year 2023, memory is still
 quite expensive and adds up quickly. If you need a VM with 4GB of memory, Azure or AWS
@@ -168,6 +164,23 @@ that. We all want to sleep easy at night.
 
 That's the problem we're trying to address with Eugene, Spinach, and Popeye.
 
-We wanted a way to build these trigram indexes and have a way to put an LRU cache in
-front of it so that it can still run fast most of the time, but not have the risk of
-running out of memory if the indexes or too big or the VM is too small.
+We wanted a way to build these trigram indexes with clean, flexible, easy to modify C#
+code, and also have a way to put an LRU cache in front of the data structures so that
+the amount of memory used can be controlled more carefully. The goal is to make the
+indexing run very fast even on small memory VM instances, and to never product out of
+memory errors.
+
+# Where Did the Names Come From?
+Zoekt is a Dutch word that means "seek".
+
+The creator of Zoekt used the following tag line in his documentation:
+
+```
+"Zoekt, en gij zult spinazie eten" - Jan Eertink
+
+("seek, and ye shall eat spinach" - My primary school teacher)
+```
+
+Here in America, everyone knows that Popeye the Sailorman gets strong by eating spinach,
+and so our names are based on this theme. Eugene is named after the character Eugene the Jeep
+in the comic series.
