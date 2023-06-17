@@ -1,0 +1,36 @@
+using Eugene.Blocks;
+
+namespace Eugene.Collections;
+
+public class DiskLinkedListManager
+{
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+  // Constructors
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+
+  public DiskLinkedListManager(IDiskBlockManager diskBlockManager, int linkedListBlockTypeIndex, int linkedListNodeBlockTypeIndex)
+  {
+    DiskBlockManager = diskBlockManager;
+    LinkedListBlockTypeIndex = linkedListBlockTypeIndex;
+    LinkedListNodeBlockTypeIndex = linkedListNodeBlockTypeIndex;
+  }
+  
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+  // Public Properties
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+
+  public IDiskBlockManager DiskBlockManager { get; }
+
+  public int LinkedListBlockTypeIndex { get; }
+  
+  public int LinkedListNodeBlockTypeIndex { get; }
+  
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+  // Public Methods
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+
+  public DiskLinkedListFactory<TData> CreateFactory<TData>(short dataBlockTypeIndex) where TData : struct
+  {
+    return new DiskLinkedListFactory<TData>(this, dataBlockTypeIndex);
+  }
+}
