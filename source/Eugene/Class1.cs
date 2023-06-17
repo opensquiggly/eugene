@@ -1,4 +1,4 @@
-﻿namespace Eugene;
+namespace Eugene;
 
 public class Class1
 {
