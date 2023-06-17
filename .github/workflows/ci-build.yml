@@ -12,6 +12,9 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: pwsh
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
@@ -33,13 +36,12 @@ jobs:
       - name: Format check
         run: |
           dotnet tool restore
-          dotnet format --verify-no-changes Eugene.sln
+          dotnet format --verify-no-changes ./Eugene.sln
 
       - name: Build Eugene
         run: |
           cd source/Eugene/
           dotnet build --configuration Debug
-        shell: pwsh
 
       - name: run Eugene.Tests
         run: |

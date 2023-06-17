@@ -15,6 +15,9 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: pwsh
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
@@ -27,7 +30,6 @@ jobs:
       - name: List files in the repository
         run: |
           ls ${{ github.workspace }}
-        shell: pwsh
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v2
@@ -35,18 +37,18 @@ jobs:
           dotnet-version: 7.0.x
 
       - name: Format check
-        run: dotnet-format --verify-no-changes Eugene.sln
+        run: |
+          dotnet tool restore
+          dotnet format --verify-no-changes Eugene.sln
 
       - name: Build Eugene in release mode
         run: |
           cd source/Eugene/
           dotnet build --configuration Release
-        shell: pwsh
 
       - name: Publish
         run: |
           cd source/Eugene/bin/Packages
           dotnet nuget push Eugene.*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key ${{secrets.PUBLISH_TO_NUGET_ORG}}
-        shell: pwsh
 
       - run: echo "🍏 This job's status is ${{ job.status }}."
