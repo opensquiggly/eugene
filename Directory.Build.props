@@ -1,0 +1,27 @@
+<Project>
+  <!-- Set common properties regarding assembly information and nuget packages -->
+  <PropertyGroup>
+    <Authors>OpenSquiggly</Authors>
+    <Company>OpenSquiggly</Company>
+    <Product>OpenSquiggly.Eugene</Product>
+    <Description>Eugene is a data structure persistence library for .NET, providing access to traditional in-memory data structures such as arrays, linked lists, array lists, hash tables, binary trees, trie trees, etc., in a format that is continuously persisted to disk.</Description>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/opensquiggly/eugene.git</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/opensquiggly/eugene</PackageProjectUrl>
+    <PackageTags>OpenSquiggly; Eugene; DataStructure; Persistence; Arrays; LinkedLists; ArrayLists; HashTables; BinaryTrees; TrieTrees; TextIndexing; TrigramIndexing; CodeSearch; RegularExpressions; Zoekt; Spinach; Popeye; PerformanceOptimization; MemoryManagement</PackageTags>
+    <PackageVersion>1.0.0-alpha.0</PackageVersion>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageIcon>Logo.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <PropertyGroup>    
+    <EnablePreviewFeatures>false</EnablePreviewFeatures>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <Nullable>enable</Nullable>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+</Project>
