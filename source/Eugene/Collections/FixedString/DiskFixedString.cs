@@ -42,7 +42,7 @@ public class DiskFixedString
     // Strings longer than the maximum declared length when the FixedString
     // was created originally are truncated, but no exception is thrown.
 
-    DiskBlockManager.ReadDataBlock<ArrayBlock>(ArrayBlockTypeIndex, Address, out var block);
+    DiskBlockManager.ReadDataBlock<ArrayBlock>(ArrayBlockTypeIndex, Address, out ArrayBlock block);
 
     int newLength = Math.Min(val.Length, block.MaxItems);
     for (int index = 0; index < newLength; index++)
@@ -57,9 +57,9 @@ public class DiskFixedString
 
   public string GetValue()
   {
-    StringBuilder sb = new StringBuilder();
+    var sb = new StringBuilder();
 
-    DiskBlockManager.ReadDataBlock<ArrayBlock>(ArrayBlockTypeIndex, Address, out var block);
+    DiskBlockManager.ReadDataBlock<ArrayBlock>(ArrayBlockTypeIndex, Address, out ArrayBlock block);
 
     for (int index = 0; index < block.Count; index++)
     {

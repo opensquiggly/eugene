@@ -36,9 +36,9 @@ public class DiskLinkedList<TData> where TData : struct
 
   public void AddLast(TData item)
   {
-    DiskBlockManager.ReadDataBlock<LinkedListBlock>(LinkedListBlockTypeIndex, Address, out var block);
+    DiskBlockManager.ReadDataBlock<LinkedListBlock>(LinkedListBlockTypeIndex, Address, out LinkedListBlock block);
 
-    var dataAddress = DiskBlockManager.AppendDataBlock(DataBlockTypeIndex, ref item);
+    long dataAddress = DiskBlockManager.AppendDataBlock(DataBlockTypeIndex, ref item);
     LinkedListNodeBlock node = default;
     node.DataAddress = dataAddress;
 
@@ -47,7 +47,7 @@ public class DiskLinkedList<TData> where TData : struct
       // List is Empty. Add first node.
       node.PreviousAddress = 0;
       node.NextAddress = 0;
-      var nodeAddress = DiskBlockManager.AppendDataBlock(LinkedListNodeBlockTypeIndex, ref node);
+      long nodeAddress = DiskBlockManager.AppendDataBlock(LinkedListNodeBlockTypeIndex, ref node);
       block.HeadAddress = nodeAddress;
       block.TailAddress = nodeAddress;
       block.Count++;
@@ -57,10 +57,10 @@ public class DiskLinkedList<TData> where TData : struct
     {
       node.PreviousAddress = block.TailAddress;
       node.NextAddress = 0;
-      var newNodeAddress = DiskBlockManager.AppendDataBlock(LinkedListNodeBlockTypeIndex, ref node);
+      long newNodeAddress = DiskBlockManager.AppendDataBlock(LinkedListNodeBlockTypeIndex, ref node);
 
       DiskBlockManager.ReadDataBlock<LinkedListNodeBlock>(LinkedListNodeBlockTypeIndex, block.TailAddress,
-        out var tailNode);
+        out LinkedListNodeBlock tailNode);
       tailNode.NextAddress = newNodeAddress;
       DiskBlockManager.WriteDataBlock<LinkedListNodeBlock>(LinkedListNodeBlockTypeIndex, block.TailAddress, ref tailNode);
       block.TailAddress = newNodeAddress;

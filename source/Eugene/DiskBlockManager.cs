@@ -269,7 +269,7 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
   {
     for (int index = 0; index < blockTypeMetadataBlocks.Count; index++)
     {
-      var blockTypeMetadataBlock = blockTypeMetadataBlocks[index];
+      BlockTypeMetadataBlock blockTypeMetadataBlock = blockTypeMetadataBlocks[index];
       WriteBlockTypeMetadataBlock(index, ref blockTypeMetadataBlock, false);
     }
   }
@@ -322,7 +322,7 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
       BlockTypesCount = RegisteredBlockTypes.Count;
       BlockTypeMetadataBlocksList = new List<BlockTypeMetadataBlock>();
 
-      foreach (var size in RegisteredBlockTypes)
+      foreach (int size in RegisteredBlockTypes)
       {
         var blockTypeMetadataBlock = new BlockTypeMetadataBlock() { ItemSize = size, FreeListHeadNode = 0 };
         BlockTypeMetadataBlocksList.Add(blockTypeMetadataBlock);
@@ -413,7 +413,7 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
   public long AppendDataBlock<TStruct>(int blockTypeIndex, ref TStruct input) where TStruct : struct
   {
     long address;
-    var btmb = BlockTypeMetadataBlocksList[blockTypeIndex];
+    BlockTypeMetadataBlock btmb = BlockTypeMetadataBlocksList[blockTypeIndex];
 
     if (btmb.ItemSize != Marshal.SizeOf<TStruct>())
     {
@@ -424,7 +424,7 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
     {
       // Take item off the free list and reuse it
       address = btmb.FreeListHeadNode;
-      ReadBlockMetadataBlock(address, out var freeBmb);
+      ReadBlockMetadataBlock(address, out BlockMetadataBlock freeBmb);
       btmb.FreeListHeadNode = freeBmb.NextBlock;
       WriteBlockTypeMetadataBlock(blockTypeIndex, ref btmb, true);
       freeBmb.Free = 0;
@@ -450,8 +450,7 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
 
   public long AppendDataBlockArray<TData>(int blockTypeIndex, int count) where TData : struct
   {
-    long address;
-    var btmb = BlockTypeMetadataBlocksList[blockTypeIndex];
+    BlockTypeMetadataBlock btmb = BlockTypeMetadataBlocksList[blockTypeIndex];
 
     if (btmb.ItemSize != Marshal.SizeOf<TData>())
     {
@@ -472,7 +471,7 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
     // else
     // {
     // If there are no free blocks, add a new one at the end of the file
-    address = FileStream.Length;
+    long address = FileStream.Length;
     BlockMetadataBlock newBmb = default;
     newBmb.Free = 0;
     newBmb.NextBlock = 0;
@@ -498,7 +497,7 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
     bmb.Free = 1;
     WriteBlockMetadataBlock(address, ref bmb);
 
-    var btmb = BlockTypeMetadataBlocksList[blockTypeIndex];
+    BlockTypeMetadataBlock btmb = BlockTypeMetadataBlocksList[blockTypeIndex];
     btmb.FreeListHeadNode = address;
     WriteBlockTypeMetadataBlock(blockTypeIndex, ref btmb, true);
   }
