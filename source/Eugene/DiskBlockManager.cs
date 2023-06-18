@@ -144,7 +144,8 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
 
   private int BlockTypesCount { get; set; }
 
-  private int TotalPreambleSize => HeaderBlockSize + ClientHeaderBlockSize + BlockTypeMetadataBlockSize * BlockTypesCount;
+  private int TotalPreambleSize =>
+    HeaderBlockSize + ClientHeaderBlockSize + BlockTypeMetadataBlockSize * BlockTypesCount;
 
   private string Path { get; set; }
 
@@ -187,7 +188,8 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
     }
   }
 
-  private void ReadBlockTypeMetadataBlock(int blockTypeIndex, out BlockTypeMetadataBlock output, bool replaceCachedCopy = true)
+  private void ReadBlockTypeMetadataBlock(int blockTypeIndex, out BlockTypeMetadataBlock output,
+    bool replaceCachedCopy = true)
   {
     ReadBlock<BlockTypeMetadataBlock>(
       HeaderBlockSize + ClientHeaderBlockSize + blockTypeIndex * BlockTypeMetadataBlockSize - 1,
@@ -250,7 +252,8 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
     }
   }
 
-  private void WriteBlockTypeMetadataBlock(int blockTypeIndex, ref BlockTypeMetadataBlock input, bool replaceCachedCopy = true)
+  private void WriteBlockTypeMetadataBlock(int blockTypeIndex, ref BlockTypeMetadataBlock input,
+    bool replaceCachedCopy = true)
   {
     WriteBlock<BlockTypeMetadataBlock>(
       HeaderBlockSize + ClientHeaderBlockSize + blockTypeIndex * BlockTypeMetadataBlockSize - 1,
@@ -321,11 +324,7 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
 
       foreach (var size in RegisteredBlockTypes)
       {
-        var blockTypeMetadataBlock = new BlockTypeMetadataBlock()
-        {
-          ItemSize = size,
-          FreeListHeadNode = 0
-        };
+        var blockTypeMetadataBlock = new BlockTypeMetadataBlock() { ItemSize = size, FreeListHeadNode = 0 };
         BlockTypeMetadataBlocksList.Add(blockTypeMetadataBlock);
       }
 
@@ -369,24 +368,28 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
     ReadBlock<TStruct>(address + BlockMetadataBlockSize, out input);
   }
 
-  public void ReadDataBlockArrayEntry<TStruct>(int blockTypeIndex, long baseAddress, int index, out TStruct input) where TStruct : struct
+  public void ReadDataBlockArrayEntry<TStruct>(int blockTypeIndex, long baseAddress, int index, out TStruct input)
+    where TStruct : struct
   {
     if (BlockTypeMetadataBlocksList[blockTypeIndex].ItemSize != Marshal.SizeOf<TStruct>())
     {
       throw new Exception("The size of the provided structure does not match the size of the block type");
     }
 
-    ReadBlock<TStruct>(baseAddress + BlockMetadataBlockSize + index * BlockTypeMetadataBlocksList[blockTypeIndex].ItemSize, out input);
+    ReadBlock<TStruct>(
+      baseAddress + BlockMetadataBlockSize + index * BlockTypeMetadataBlocksList[blockTypeIndex].ItemSize, out input);
   }
 
-  public void WriteDataBlockArrayEntry<TStruct>(int blockTypeIndex, long baseAddress, int index, ref TStruct input) where TStruct : struct
+  public void WriteDataBlockArrayEntry<TStruct>(int blockTypeIndex, long baseAddress, int index, ref TStruct input)
+    where TStruct : struct
   {
     if (BlockTypeMetadataBlocksList[blockTypeIndex].ItemSize != Marshal.SizeOf<TStruct>())
     {
       throw new Exception("The size of the provided structure does not match the size of the block type");
     }
 
-    WriteBlock<TStruct>(baseAddress + BlockMetadataBlockSize + index * BlockTypeMetadataBlocksList[blockTypeIndex].ItemSize, ref input);
+    WriteBlock<TStruct>(
+      baseAddress + BlockMetadataBlockSize + index * BlockTypeMetadataBlocksList[blockTypeIndex].ItemSize, ref input);
   }
 
   public void WriteDataBlock<TStruct>(int blockTypeIndex, long address, ref TStruct input) where TStruct : struct
@@ -468,12 +471,12 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
     // }
     // else
     // {
-      // If there are no free blocks, add a new one at the end of the file
-      address = FileStream.Length;
-      BlockMetadataBlock newBmb = default;
-      newBmb.Free = 0;
-      newBmb.NextBlock = 0;
-      WriteBlockMetadataBlock(address, ref newBmb);
+    // If there are no free blocks, add a new one at the end of the file
+    address = FileStream.Length;
+    BlockMetadataBlock newBmb = default;
+    newBmb.Free = 0;
+    newBmb.NextBlock = 0;
+    WriteBlockMetadataBlock(address, ref newBmb);
     // }
 
     TData emptyData = default;
