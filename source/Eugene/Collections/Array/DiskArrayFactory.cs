@@ -14,7 +14,7 @@ public class DiskArrayFactory<TData> where TData : struct, IComparable
     Manager = manager;
     DataBlockTypeIndex = dataBlockTypeIndex;
   }
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Properties
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -22,15 +22,15 @@ public class DiskArrayFactory<TData> where TData : struct, IComparable
   public int ArrayBlockTypeIndex => Manager.ArrayBlockTypeIndex;
 
   public short DataBlockTypeIndex { get; }
-  
-  public IDiskBlockManager DiskBlockManager => Manager.DiskBlockManager; 
+
+  public IDiskBlockManager DiskBlockManager => Manager.DiskBlockManager;
 
   public DiskArrayManager Manager { get; }
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
-  
+
   public DiskArray<TData> AppendNew(int maxItems)
   {
     long dataAddress = DiskBlockManager.AppendDataBlockArray<TData>(DataBlockTypeIndex, maxItems);
@@ -40,7 +40,7 @@ public class DiskArrayFactory<TData> where TData : struct, IComparable
     block.MaxItems = maxItems;
     block.Count = 0;
     block.DataAddress = dataAddress;
-    
+
     long address = DiskBlockManager.AppendDataBlock<ArrayBlock>(ArrayBlockTypeIndex, ref block);
     return new DiskArray<TData>(this, address);
   }
@@ -49,7 +49,7 @@ public class DiskArrayFactory<TData> where TData : struct, IComparable
   {
     throw new NotImplementedException();
   }
-  
+
   public DiskArray<TData> LoadExisting(long address)
   {
     return new DiskArray<TData>(this, address);

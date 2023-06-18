@@ -13,7 +13,7 @@ public class DiskLinkedListFactory<TData> where TData : struct
     Manager = manager;
     DataBlockTypeIndex = dataBlockTypeIndex;
   }
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Properties
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -21,13 +21,13 @@ public class DiskLinkedListFactory<TData> where TData : struct
   public DiskLinkedListManager Manager { get; }
 
   public IDiskBlockManager DiskBlockManager => Manager.DiskBlockManager;
-  
+
   public int DataBlockTypeIndex { get; }
 
   public int LinkedListBlockTypeIndex => Manager.LinkedListBlockTypeIndex;
 
   public int LinkedListNodeBlockTypeIndex => Manager.LinkedListNodeBlockTypeIndex;
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -44,10 +44,10 @@ public class DiskLinkedListFactory<TData> where TData : struct
     long address = DiskBlockManager.AppendDataBlock<LinkedListBlock>(LinkedListBlockTypeIndex, ref block);
 
     return new DiskLinkedList<TData>(this, address);
-  }  
-  
+  }
+
   public DiskLinkedList<TData> LoadExisting(long address)
   {
     return new DiskLinkedList<TData>(this, address);
-  }  
+  }
 }

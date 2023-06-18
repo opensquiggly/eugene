@@ -10,7 +10,7 @@ namespace Eugene;
 // NBT   = Number of Requested Block Types - Specified by the consumer in the constructor.
 // BTMDS = BlockTypeMetadataSize - Controlled by us. SizeOf(BlockTypeMetadata)
 // BMDS  = BlockMetadataSize - Controlled by us. SizeOf(BlockMetadata).
-//  
+//
 //          Offset |----------------------------------------------------------------------------
 //               0 |First comes the Header block which stores critical information about the
 //                 |file, namely:
@@ -31,8 +31,8 @@ namespace Eugene;
 //                 |  * long Address7             - General purpose address storage for client
 //                 |  * long Address8             - General purpose address storage for client
 //                 |----------------------------------------------------------------------------
-//         HBS - 1 |Next is an array of structs of BlockTypeMetadataBlock that is used to store 
-//                 |information about each type of block stored in the file. The consumer 
+//         HBS - 1 |Next is an array of structs of BlockTypeMetadataBlock that is used to store
+//                 |information about each type of block stored in the file. The consumer
 //                 |specifies how many different block types they need, and the size of each
 //                 |block type that they want to store by passing parameters into the constructor.
 //                 |This section occupies NBT * BTMDS bytes.
@@ -47,7 +47,7 @@ namespace Eugene;
 //                 |    -----------------------------------------------------------------------
 //                 |    Data occupying the number of bytes corresponding to its block type
 //                 |    -----------------------------------------------------------------------
-//                 | . 
+//                 | .
 //                 | .
 //                 | . End of File
 //                 |----------------------------------------------------------------------------
@@ -61,7 +61,7 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
   public DiskBlockManager()
   {
     RegisteredBlockTypes = new List<int>();
-    
+
     CharBlockType = RegisterBlockType<char>();
     ShortBlockType = RegisterBlockType<short>();
     IntBlockType = RegisterBlockType<int>();
@@ -70,7 +70,7 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
     ArrayBlockType = RegisterBlockType<ArrayBlock>();
     LinkedListBlockType = RegisterBlockType<LinkedListBlock>();
     LinkedListNodeBlockType = RegisterBlockType<LinkedListNodeBlock>();
-    
+
     ArrayManager = new DiskArrayManager(this, ArrayBlockType);
     FixedStringManager = new DiskFixedStringManager(this, ArrayBlockType);
     ImmutableStringManager = new DiskImmutableStringManager(this, ArrayBlockType);
@@ -82,7 +82,7 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
     FixedStringFactory = FixedStringManager.CreateFactory(CharBlockType);
     ImmutableStringFactory = ImmutableStringManager.CreateFactory(CharBlockType);
   }
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Private Member Variables
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -92,47 +92,47 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Private Properties
   // /////////////////////////////////////////////////////////////////////////////////////////////
-  
+
   private static int BlockMetadataBlockSize => Marshal.SizeOf<BlockMetadataBlock>();
-  
+
   private short ArrayBlockType { get; set; }
-  
+
   private short CharBlockType { get; set; }
-  
+
   private short ShortBlockType { get; set; }
-  
+
   private short IntBlockType { get; set; }
-  
+
   private short LongBlockType { get; set; }
-  
+
   private short LinkedListBlockType { get; set; }
-  
+
   private short LinkedListNodeBlockType { get; set; }
-  
+
   private short Fixed2KBlockType { get; set; }
-  
+
   private short Fixed4KBlockType { get; set; }
 
   private DiskFixedStringManager FixedStringManager { get; set; }
-  
+
   private DiskImmutableStringManager ImmutableStringManager { get; set; }
 
   public DiskArrayFactory<short> ArrayOfShortFactory { get; set; }
-  
+
   public DiskArrayFactory<int> ArrayOfIntFactory { get; set; }
-  
+
   public DiskArrayFactory<long> ArrayOfLongFactory { get; set; }
-  
+
   public DiskLinkedListManager LinkedListManager { get; set; }
-  
+
   public DiskArrayManager ArrayManager { get; set; }
 
   public DiskFixedStringFactory FixedStringFactory { get; }
-  
+
   public DiskImmutableStringFactory ImmutableStringFactory { get; }
-  
-  private IList<BlockTypeMetadataBlock> BlockTypeMetadataBlocksList { get; set; } 
-  
+
+  private IList<BlockTypeMetadataBlock> BlockTypeMetadataBlocksList { get; set; }
+
   private IList<int> RegisteredBlockTypes { get; set; }
 
   private int HeaderBlockSize => Marshal.SizeOf<HeaderBlock>();
@@ -140,15 +140,15 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
   private int ClientHeaderBlockSize { get; set; }
 
   private int BlockTypeMetadataBlockSize => Marshal.SizeOf<BlockTypeMetadataBlock>();
-  
+
   private int BlockTypesCount { get; set; }
 
   private int TotalPreambleSize => HeaderBlockSize + ClientHeaderBlockSize + BlockTypeMetadataBlockSize * BlockTypesCount;
-  
+
   private string Path { get; set; }
-  
+
   private FileStream FileStream { get; set; }
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Private Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -156,9 +156,9 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
   private void ReadRawBlock(long address, Span<byte> output)
   {
     FileStream.Seek(address, SeekOrigin.Begin);
-    FileStream.Read(output);       
+    FileStream.Read(output);
   }
-  
+
   private void ReadBlock<TStruct>(long address, out TStruct output) where TStruct : struct
   {
     int blockSize = Marshal.SizeOf<TStruct>();
@@ -176,7 +176,7 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
       Marshal.FreeHGlobal(ptr);
     }
   }
-  
+
   private void ReadHeaderBlock(out HeaderBlock output, bool replaceCachedCopy = true)
   {
     ReadBlock<HeaderBlock>(0, out output);
@@ -185,11 +185,11 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
       _headerBlock = output;
     }
   }
-  
+
   private void ReadBlockTypeMetadataBlock(int blockTypeIndex, out BlockTypeMetadataBlock output, bool replaceCachedCopy = true)
   {
     ReadBlock<BlockTypeMetadataBlock>(
-      HeaderBlockSize + ClientHeaderBlockSize + blockTypeIndex * BlockTypeMetadataBlockSize - 1, 
+      HeaderBlockSize + ClientHeaderBlockSize + blockTypeIndex * BlockTypeMetadataBlockSize - 1,
       out output
     );
     if (replaceCachedCopy)
@@ -201,20 +201,20 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
   private void ReadAllBlockTypeMetadataBlocks(ICollection<BlockTypeMetadataBlock> blockTypeMetadataBlocksList)
   {
     blockTypeMetadataBlocksList.Clear();
-    
+
     for (int x = 0; x < BlockTypesCount; x++)
     {
       var blockTypeMetadataBlock = new BlockTypeMetadataBlock();
       ReadBlockTypeMetadataBlock(x, out blockTypeMetadataBlock, false);
       blockTypeMetadataBlocksList.Add(blockTypeMetadataBlock);
     }
-  }  
-  
+  }
+
   private void ReadBlockMetadataBlock(long address, out BlockMetadataBlock input)
   {
     ReadBlock<BlockMetadataBlock>(address, out input);
-  }    
-  
+  }
+
   private void WriteRawBlock(long address, Span<byte> input)
   {
     FileStream.Seek(address, SeekOrigin.Begin);
@@ -239,7 +239,7 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
 
     WriteRawBlock(address, buffer);
   }
-  
+
   private void WriteHeaderBlock(ref HeaderBlock input, bool replaceCachedCopy = true)
   {
     WriteBlock<HeaderBlock>(0, ref input);
@@ -268,12 +268,12 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
       var blockTypeMetadataBlock = blockTypeMetadataBlocks[index];
       WriteBlockTypeMetadataBlock(index, ref blockTypeMetadataBlock, false);
     }
-  }  
-  
+  }
+
   private void WriteBlockMetadataBlock(long address, ref BlockMetadataBlock input)
   {
     WriteBlock<BlockMetadataBlock>(address, ref input);
-  }  
+  }
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Methods
@@ -302,10 +302,10 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
       ReadAllBlockTypeMetadataBlocks(BlockTypeMetadataBlocksList);
     }
     else
-    { 
+    {
       FileStream = new FileStream(filePath, FileMode.CreateNew, FileAccess.ReadWrite);
       Path = filePath;
-      
+
       var headerBlock = new HeaderBlock
       {
         HeaderBlockSize = HeaderBlockSize,
@@ -313,11 +313,11 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
         SchemaVersion = 1,
         BlockTypesCount = RegisteredBlockTypes.Count
       };
-      
+
       WriteHeaderBlock(ref headerBlock, true);
       BlockTypesCount = RegisteredBlockTypes.Count;
       BlockTypeMetadataBlocksList = new List<BlockTypeMetadataBlock>();
-      
+
       foreach (var size in RegisteredBlockTypes)
       {
         var blockTypeMetadataBlock = new BlockTypeMetadataBlock()
@@ -351,42 +351,42 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
   {
     FileStream.Flush();
   }
-  
+
   public void Dispose()
   {
     Flush();
     Close();
   }
-  
+
   public void ReadDataBlock<TStruct>(int blockTypeIndex, long address, out TStruct input) where TStruct : struct
   {
     if (BlockTypeMetadataBlocksList[blockTypeIndex].ItemSize != Marshal.SizeOf<TStruct>())
     {
       throw new Exception("The size of the provided structure does not match the size of the block type");
     }
-    
+
     ReadBlock<TStruct>(address + BlockMetadataBlockSize, out input);
-  }  
-  
+  }
+
   public void ReadDataBlockArrayEntry<TStruct>(int blockTypeIndex, long baseAddress, int index, out TStruct input) where TStruct : struct
   {
     if (BlockTypeMetadataBlocksList[blockTypeIndex].ItemSize != Marshal.SizeOf<TStruct>())
     {
       throw new Exception("The size of the provided structure does not match the size of the block type");
     }
-    
+
     ReadBlock<TStruct>(baseAddress + BlockMetadataBlockSize + index * BlockTypeMetadataBlocksList[blockTypeIndex].ItemSize, out input);
-  }  
-  
+  }
+
   public void WriteDataBlockArrayEntry<TStruct>(int blockTypeIndex, long baseAddress, int index, ref TStruct input) where TStruct : struct
   {
     if (BlockTypeMetadataBlocksList[blockTypeIndex].ItemSize != Marshal.SizeOf<TStruct>())
     {
       throw new Exception("The size of the provided structure does not match the size of the block type");
     }
-    
+
     WriteBlock<TStruct>(baseAddress + BlockMetadataBlockSize + index * BlockTypeMetadataBlocksList[blockTypeIndex].ItemSize, ref input);
-  }    
+  }
 
   public void WriteDataBlock<TStruct>(int blockTypeIndex, long address, ref TStruct input) where TStruct : struct
   {
@@ -402,10 +402,10 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
     {
       throw new Exception("The size of the provided structure does not match the size of the block type");
     }
-    
+
     WriteBlock<TStruct>(address + BlockMetadataBlockSize, ref input);
   }
-  
+
   public long AppendDataBlock<TStruct>(int blockTypeIndex, ref TStruct input) where TStruct : struct
   {
     long address;
@@ -474,7 +474,7 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
       newBmb.NextBlock = 0;
       WriteBlockMetadataBlock(address, ref newBmb);
     // }
-    
+
     TData emptyData = default;
     for (int x = 0; x < count; x++)
     {
@@ -484,7 +484,7 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
 
     Flush();
 
-    return address;    
+    return address;
   }
 
   public void DeleteDataBlock(int blockTypeIndex, long address)
@@ -493,7 +493,7 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
     bmb.NextBlock = BlockTypeMetadataBlocksList[blockTypeIndex].FreeListHeadNode;
     bmb.Free = 1;
     WriteBlockMetadataBlock(address, ref bmb);
-    
+
     var btmb = BlockTypeMetadataBlocksList[blockTypeIndex];
     btmb.FreeListHeadNode = address;
     WriteBlockTypeMetadataBlock(blockTypeIndex, ref btmb, true);

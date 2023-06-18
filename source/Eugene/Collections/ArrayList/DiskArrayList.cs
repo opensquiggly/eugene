@@ -2,15 +2,15 @@ using Eugene.Blocks;
 
 namespace Eugene.Collections;
 
-public class DiskArrayList<TRoot, TItem> 
+public class DiskArrayList<TRoot, TItem>
   where TRoot : struct
   where TItem : struct
 {
   public DiskArrayList(IDiskBlockManager diskBlockManager, int itemSize, int arrayListBlockType, int itemBlockType, long starterAddress)
   {
   }
-  
-  
+
+
 
   public int Count
   {

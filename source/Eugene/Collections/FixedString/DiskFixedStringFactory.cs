@@ -14,19 +14,19 @@ public class DiskFixedStringFactory
     Manager = manager;
     DataBlockTypeIndex = dataBlockTypeIndex;
   }
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Properties
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
   public DiskFixedStringManager Manager { get; }
 
-  public IDiskBlockManager DiskBlockManager => Manager.DiskBlockManager; 
+  public IDiskBlockManager DiskBlockManager => Manager.DiskBlockManager;
 
   public short DataBlockTypeIndex { get; }
 
   public int ArrayBlockTypeIndex => Manager.ArrayBlockTypeIndex;
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -40,14 +40,14 @@ public class DiskFixedStringFactory
     block.MaxItems = maxLength;
     block.Count = 0;
     block.DataAddress = dataAddress;
-    
+
     long address = DiskBlockManager.AppendDataBlock<ArrayBlock>(ArrayBlockTypeIndex, ref block);
-    
+
     return new DiskFixedString(this, address);
   }
-  
+
   public DiskFixedString LoadExisting(long address)
   {
     return new DiskFixedString(this, address);
-  }  
+  }
 }

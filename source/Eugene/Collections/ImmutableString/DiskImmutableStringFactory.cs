@@ -14,19 +14,19 @@ public class DiskImmutableStringFactory
     Manager = manager;
     DataBlockTypeIndex = dataBlockTypeIndex;
   }
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Properties
   // /////////////////////////////////////////////////////////////////////////////////////////////
-  
+
   public DiskImmutableStringManager Manager { get; }
 
-  public IDiskBlockManager DiskBlockManager => Manager.DiskBlockManager; 
+  public IDiskBlockManager DiskBlockManager => Manager.DiskBlockManager;
 
   public short DataBlockTypeIndex { get; }
 
   public int ArrayBlockTypeIndex => Manager.ArrayBlockTypeIndex;
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -39,20 +39,20 @@ public class DiskImmutableStringFactory
       char ch = val[index];
       DiskBlockManager.WriteDataBlockArrayEntry<char>(DataBlockTypeIndex, dataAddress, index, ref ch);
     }
-    
+
     ArrayBlock block = default;
     block.DataBlockTypeIndex = DataBlockTypeIndex;
     block.DataSize = Marshal.SizeOf<char>();
     block.MaxItems = val.Length;
     block.Count = val.Length;
     block.DataAddress = dataAddress;
-    
+
     long address = DiskBlockManager.AppendDataBlock<ArrayBlock>(ArrayBlockTypeIndex, ref block);
     return new DiskImmutableString(this, address);
   }
-  
+
   public DiskImmutableString LoadExisting(long address)
   {
     return new DiskImmutableString(this, address);
-  }  
+  }
 }

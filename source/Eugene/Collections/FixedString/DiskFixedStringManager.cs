@@ -13,11 +13,11 @@ public class DiskFixedStringManager
     DiskBlockManager = diskBlockManager;
     ArrayBlockTypeIndex = arrayBlockTypeIndex;
   }
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Properties
   // /////////////////////////////////////////////////////////////////////////////////////////////
-  
+
   public IDiskBlockManager DiskBlockManager { get; }
 
   public int ArrayBlockTypeIndex { get; }

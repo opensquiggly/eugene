@@ -14,21 +14,21 @@ public class DiskFixedString
     Factory = factory;
     Address = address;
   }
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Properties
   // /////////////////////////////////////////////////////////////////////////////////////////////
-  
+
   public IDiskBlockManager DiskBlockManager => Factory.DiskBlockManager;
-  
+
   public DiskFixedStringFactory Factory { get; }
 
   public int ArrayBlockTypeIndex => Factory.ArrayBlockTypeIndex;
 
-  public int DataBlockTypeIndex => Factory.DataBlockTypeIndex; 
-  
+  public int DataBlockTypeIndex => Factory.DataBlockTypeIndex;
+
   public long Address { get; }
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -58,7 +58,7 @@ public class DiskFixedString
   public string GetValue()
   {
     StringBuilder sb = new StringBuilder();
-    
+
     DiskBlockManager.ReadDataBlock<ArrayBlock>(ArrayBlockTypeIndex, Address, out var block);
 
     for (int index = 0; index < block.Count; index++)

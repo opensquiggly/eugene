@@ -23,9 +23,9 @@ public class DiskArray<TData> where TData : struct, IComparable
   public int ArrayBlockTypeIndex => Factory.ArrayBlockTypeIndex;
 
   public IDiskBlockManager DiskBlockManager => Factory.DiskBlockManager;
-  
+
   public DiskArrayFactory<TData> Factory { get; }
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Indexer
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -38,11 +38,11 @@ public class DiskArray<TData> where TData : struct, IComparable
       return temp;
     }
   }
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
-  
+
   public void AddItem(TData item)
   {
     DiskBlockManager.ReadDataBlock<ArrayBlock>(ArrayBlockTypeIndex, Address, out var block);
@@ -50,9 +50,9 @@ public class DiskArray<TData> where TData : struct, IComparable
     {
       throw new Exception("DiskArray: Maximum array size exceeded");
     }
-    
+
     DiskBlockManager.WriteDataBlock(
-      Factory.DataBlockTypeIndex, 
+      Factory.DataBlockTypeIndex,
       block.DataAddress + block.DataSize * block.Count,
       ref item
     );
@@ -69,12 +69,12 @@ public class DiskArray<TData> where TData : struct, IComparable
     if (index < 0 || index > block.Count - 1)
     {
       throw new Exception("DiskArray: Requested index is outside the bounds of the array");
-    }    
-    
+    }
+
     DiskBlockManager.ReadDataBlock(
-      Factory.DataBlockTypeIndex, 
+      Factory.DataBlockTypeIndex,
       block.DataAddress + block.DataSize * index,
       out item
-    );    
+    );
   }
 }

@@ -15,6 +15,6 @@ public interface IDiskBlockManager
 
   public void WriteDataBlockArrayEntry<TStruct>(int blockTypeIndex, long baseAddress, int index, ref TStruct input)
     where TStruct : struct;
-  
+
   public void DeleteDataBlock(int blockTypeIndex, long address);
 }

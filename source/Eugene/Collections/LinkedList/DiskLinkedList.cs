@@ -13,13 +13,13 @@ public class DiskLinkedList<TData> where TData : struct
     Factory = factory;
     Address = address;
   }
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Properties
   // /////////////////////////////////////////////////////////////////////////////////////////////
-  
+
   public DiskLinkedListFactory<TData> Factory { get; }
-  
+
   public long Address { get; }
 
   public IDiskBlockManager DiskBlockManager => Factory.DiskBlockManager;
