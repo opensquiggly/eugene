@@ -34,7 +34,7 @@ public class DiskArray<TData> where TData : struct, IComparable
   {
     get
     {
-      GetAt(index, out var temp);
+      GetAt(index, out TData temp);
       return temp;
     }
   }
