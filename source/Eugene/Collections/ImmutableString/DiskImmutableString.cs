@@ -35,9 +35,9 @@ public class DiskImmutableString
 
   public string GetValue()
   {
-    StringBuilder sb = new StringBuilder();
+    var sb = new StringBuilder();
 
-    DiskBlockManager.ReadDataBlock<ArrayBlock>(ArrayBlockTypeIndex, Address, out var block);
+    DiskBlockManager.ReadDataBlock<ArrayBlock>(ArrayBlockTypeIndex, Address, out ArrayBlock block);
 
     for (int index = 0; index < block.Count; index++)
     {

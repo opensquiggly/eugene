@@ -11,15 +11,16 @@ public class DiskArrayList<TRoot, TItem>
   }
 
 
+  public int Count => 0;
 
-  public int Count
-  {
-    get
-    {
-      // Return the current count
-      return 0;
-    }
-  }
+  // public int Count
+  // {
+  //   get
+  //   {
+  //     // Return the current count
+  //     return 0;
+  //   }
+  // }
 
   public void Add(TItem item)
   {
