@@ -3,7 +3,7 @@
   <PropertyGroup>
     <IsPackable>true</IsPackable>
     <RootNamespace>Eugene</RootNamespace>
-    <PackageOutputPath>./bin/Packages</PackageOutputPath>    
+    <PackageOutputPath>./bin/Packages</PackageOutputPath>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
