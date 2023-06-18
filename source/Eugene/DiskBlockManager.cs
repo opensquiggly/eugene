@@ -286,7 +286,7 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
   public short RegisterBlockType<TData>() where TData : struct
   {
     RegisteredBlockTypes.Add(Marshal.SizeOf<TData>());
-    return (short)(RegisteredBlockTypes.Count - 1);
+    return (short) (RegisteredBlockTypes.Count - 1);
   }
 
   public DiskArrayFactory<TData> CreateArrayFactory<TData>(short dataBlockTypeIndex) where TData : struct, IComparable
