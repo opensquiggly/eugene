@@ -34,6 +34,7 @@ internal static class Program
       Console.WriteLine("4. Close current data file");
       Console.WriteLine("5. Add a new data structure");
       Console.WriteLine("6. Print registered block type sizes");
+      Console.WriteLine("7. Print data structures");
       Console.WriteLine("X. Exit program");
       Console.WriteLine();
       Console.Write("Enter selection: ");
@@ -64,6 +65,10 @@ internal static class Program
 
         case "6":
           PrintRegisteredBlockTypes();
+          break;
+        
+        case "7":
+          PrintDataStructures();
           break;
 
         case "x":
@@ -242,5 +247,30 @@ internal static class Program
       default:
         break;
     }
+  }
+
+  private static void PrintDataStructures()
+  {
+    DiskLinkedListFactory<DataStructureInfoBlock> factory = 
+      DiskBlockManager.LinkedListManager.CreateFactory<DataStructureInfoBlock>(DataStructureBlockTypeIndex);
+
+    DiskLinkedList<DataStructureInfoBlock> list = factory.LoadExisting(DiskBlockManager.GetHeaderBlock().Address1);
+    DiskLinkedList<DataStructureInfoBlock>.Position position = list.GetFirst();
+    DataStructureInfoBlock dsiBlock = position.Value;
+    
+    Console.WriteLine("Here are your current data structures:");
+    Console.WriteLine("--------------------------------------");
+
+    while (!position.IsPastTail)
+    {
+      var dsName = DiskBlockManager.ImmutableStringFactory.LoadExisting(position.Value.NameAddress);
+
+      Console.WriteLine($"Type: {dsiBlock.Type} Name: {dsName.GetValue()}");
+      position.Next();
+    }
+
+    Console.WriteLine();
+    Console.WriteLine("Press <Enter> to return to Main Menu");
+    Console.ReadLine();
   }
 }
