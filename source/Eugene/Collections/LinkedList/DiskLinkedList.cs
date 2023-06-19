@@ -1,5 +1,3 @@
-using Eugene.Blocks;
-
 namespace Eugene.Collections;
 
 public class DiskLinkedList<TData> where TData : struct
@@ -33,6 +31,15 @@ public class DiskLinkedList<TData> where TData : struct
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
+
+  public int Count
+  {
+    get
+    {
+      DiskBlockManager.ReadDataBlock<LinkedListBlock>(LinkedListBlockTypeIndex, Address, out LinkedListBlock block);
+      return block.Count;
+    }
+  }
 
   public void AddLast(TData item)
   {

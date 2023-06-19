@@ -1,7 +1,3 @@
-using System.Runtime.InteropServices;
-using Eugene.Blocks;
-using Eugene.Collections;
-
 namespace Eugene;
 
 // File Format Structure
@@ -98,13 +94,13 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
 
   private short ArrayBlockType { get; set; }
 
-  private short CharBlockType { get; set; }
+  public short CharBlockType { get; set; }
 
-  private short ShortBlockType { get; set; }
+  public short ShortBlockType { get; set; }
 
-  private short IntBlockType { get; set; }
+  public short IntBlockType { get; set; }
 
-  private short LongBlockType { get; set; }
+  public short LongBlockType { get; set; }
 
   private short LinkedListBlockType { get; set; }
 
@@ -132,9 +128,9 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
 
   public DiskImmutableStringFactory ImmutableStringFactory { get; }
 
-  private IList<BlockTypeMetadataBlock> BlockTypeMetadataBlocksList { get; set; }
+  public IList<BlockTypeMetadataBlock> BlockTypeMetadataBlocksList { get; set; }
 
-  private IList<int> RegisteredBlockTypes { get; set; }
+  public IList<int> RegisteredBlockTypes { get; set; }
 
   private int HeaderBlockSize => Marshal.SizeOf<HeaderBlock>();
 
@@ -192,7 +188,7 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
     bool replaceCachedCopy = true)
   {
     ReadBlock<BlockTypeMetadataBlock>(
-      HeaderBlockSize + ClientHeaderBlockSize + blockTypeIndex * BlockTypeMetadataBlockSize - 1,
+      HeaderBlockSize + ClientHeaderBlockSize + blockTypeIndex * BlockTypeMetadataBlockSize,
       out output
     );
     if (replaceCachedCopy)
@@ -243,7 +239,7 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
     WriteRawBlock(address, buffer);
   }
 
-  private void WriteHeaderBlock(ref HeaderBlock input, bool replaceCachedCopy = true)
+  public void WriteHeaderBlock(ref HeaderBlock input, bool replaceCachedCopy = true)
   {
     WriteBlock<HeaderBlock>(0, ref input);
     if (replaceCachedCopy)
@@ -256,7 +252,7 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
     bool replaceCachedCopy = true)
   {
     WriteBlock<BlockTypeMetadataBlock>(
-      HeaderBlockSize + ClientHeaderBlockSize + blockTypeIndex * BlockTypeMetadataBlockSize - 1,
+      HeaderBlockSize + ClientHeaderBlockSize + blockTypeIndex * BlockTypeMetadataBlockSize,
       ref input
     );
     if (replaceCachedCopy)
@@ -285,7 +281,8 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
 
   public short RegisterBlockType<TData>() where TData : struct
   {
-    RegisteredBlockTypes.Add(Marshal.SizeOf<TData>());
+    int size = Marshal.SizeOf<TData>();
+    RegisteredBlockTypes.Add(size);
     return (short) (RegisteredBlockTypes.Count - 1);
   }
 
@@ -357,6 +354,8 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
     Flush();
     Close();
   }
+
+  public HeaderBlock GetHeaderBlock() => this._headerBlock;
 
   public void ReadDataBlock<TStruct>(int blockTypeIndex, long address, out TStruct input) where TStruct : struct
   {
