@@ -29,6 +29,26 @@ public class DiskLinkedList<TData> where TData : struct
   public int LinkedListNodeBlockTypeIndex => Factory.LinkedListNodeBlockTypeIndex;
 
   public int DataBlockTypeIndex => Factory.DataBlockTypeIndex;
+  
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+  // Public Indexer
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+
+  public TData this[int index]
+  {
+    get
+    {
+      var pos = GetFirst();
+      int currentIndex = 0;
+      while (currentIndex < index)
+      {
+        pos.Next();
+        currentIndex++;
+      }
+
+      return pos.Value;
+    }
+  }
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Methods
