@@ -1,10 +1,4 @@
-﻿using Eugene;
-using EugeneExplorer.Blocks;
-
-namespace EugeneExplorer;
-
-using Eugene.Blocks;
-using Eugene.Collections;
+﻿namespace EugeneExplorer;
 
 internal static class Program
 {
