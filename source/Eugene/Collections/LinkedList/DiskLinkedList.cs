@@ -29,7 +29,7 @@ public class DiskLinkedList<TData> where TData : struct
   public int LinkedListNodeBlockTypeIndex => Factory.LinkedListNodeBlockTypeIndex;
 
   public int DataBlockTypeIndex => Factory.DataBlockTypeIndex;
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Indexer
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -38,7 +38,7 @@ public class DiskLinkedList<TData> where TData : struct
   {
     get
     {
-      var pos = GetFirst();
+      Position pos = GetFirst();
       int currentIndex = 0;
       while (currentIndex < index)
       {
@@ -132,7 +132,7 @@ public class DiskLinkedList<TData> where TData : struct
       IsEmpty = true;
       NavigatedPastTail = false;
     }
-    
+
     public Position(long nodeAddress, DiskLinkedList<TData> list, LinkedListBlock listBlock, LinkedListNodeBlock nodeBlock)
     {
       List = list;
@@ -142,17 +142,17 @@ public class DiskLinkedList<TData> where TData : struct
       IsEmpty = false;
       NavigatedPastTail = false;
     }
-    
+
     private DiskLinkedList<TData> List { get; }
-    
+
     private long NodeAddress { get; }
 
     private LinkedListBlock ListBlock { get; }
-    
+
     private LinkedListNodeBlock NodeBlock { get; set; }
-    
+
     private bool IsEmpty { get; }
-    
+
     private bool NavigatedPastTail { get; set; }
 
     public TData Value
@@ -169,24 +169,14 @@ public class DiskLinkedList<TData> where TData : struct
       }
     }
 
-    public bool IsPastHead
-    {
-      get
-      {
+    public bool IsPastHead =>
         // ReSharper disable once ArrangeAccessorOwnerBody
-        return IsEmpty;
-      }
-    }
+        IsEmpty;
 
-    public bool IsPastTail
-    {
-      get
-      {
+    public bool IsPastTail =>
         // ReSharper disable once ArrangeAccessorOwnerBody
-        return IsEmpty || NavigatedPastTail;
-      }
-    }
-    
+        IsEmpty || NavigatedPastTail;
+
     public void Next()
     {
       if (IsPastTail)
@@ -199,7 +189,7 @@ public class DiskLinkedList<TData> where TData : struct
         NavigatedPastTail = true;
         return;
       }
-      
+
       List.DiskBlockManager.ReadDataBlock<LinkedListNodeBlock>(List.LinkedListNodeBlockTypeIndex, NodeBlock.NextAddress,
         out LinkedListNodeBlock newNodeBlock);
       NodeBlock = newNodeBlock;

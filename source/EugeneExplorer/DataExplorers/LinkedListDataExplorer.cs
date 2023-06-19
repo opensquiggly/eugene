@@ -6,16 +6,16 @@ public class LinkedListDataExplorer<TData> where TData : struct
   {
     LinkedList = linkedList;
   }
-  
+
   private DiskLinkedList<long> LinkedList { get; }
 
   private void PrintListValues()
   {
     int index = 0;
-    var position = LinkedList.GetFirst();
-    
+    DiskLinkedList<long>.Position position = LinkedList.GetFirst();
+
     Console.WriteLine($"Count: {LinkedList.Count}");
-    
+
     while (!position.IsPastTail)
     {
       Console.WriteLine($"{index}: {position.Value}");
@@ -54,11 +54,11 @@ public class LinkedListDataExplorer<TData> where TData : struct
         case "1":
           PrintListValues();
           break;
-        
+
         case "2":
           AddNewValue();
           break;
-        
+
         case "x":
           finished = true;
           break;

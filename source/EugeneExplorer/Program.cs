@@ -68,11 +68,11 @@ internal static class Program
         case "6":
           PrintRegisteredBlockTypes();
           break;
-        
+
         case "7":
           PrintDataStructures();
           break;
-        
+
         case "8":
           ExploreDataStructures();
           break;
@@ -247,7 +247,7 @@ internal static class Program
         infoBlock.Type = 4;
         infoBlock.MaxItems = 0;
         infoBlock.NameAddress = nameString.Address;
-        var listFactory = DiskBlockManager.LinkedListManager.CreateFactory<long>(DiskBlockManager.LongBlockType);
+        DiskLinkedListFactory<long> listFactory = DiskBlockManager.LinkedListManager.CreateFactory<long>(DiskBlockManager.LongBlockType);
         infoBlock.DataAddress = listFactory.AppendNew().Address;
         DataStructureInfoList.AddLast(infoBlock);
         break;
@@ -259,23 +259,23 @@ internal static class Program
 
   private static void PrintDataStructures()
   {
-    DiskLinkedListFactory<DataStructureInfoBlock> factory = 
+    DiskLinkedListFactory<DataStructureInfoBlock> factory =
       DiskBlockManager.LinkedListManager.CreateFactory<DataStructureInfoBlock>(DataStructureBlockTypeIndex);
 
     DiskLinkedList<DataStructureInfoBlock> list = factory.LoadExisting(DiskBlockManager.GetHeaderBlock().Address1);
     DiskLinkedList<DataStructureInfoBlock>.Position position = list.GetFirst();
     DataStructureInfoBlock dsiBlock = position.Value;
-    
+
     Console.WriteLine("Here are your current data structures:");
     Console.WriteLine("--------------------------------------");
 
     int index = 0;
-    
+
     while (!position.IsPastTail)
     {
-      var dsName = DiskBlockManager.ImmutableStringFactory.LoadExisting(position.Value.NameAddress);
+      DiskImmutableString dsName = DiskBlockManager.ImmutableStringFactory.LoadExisting(position.Value.NameAddress);
 
-      Console.WriteLine($"{index+1}: Type: {dsiBlock.Type} Name: {dsName.GetValue()}");
+      Console.WriteLine($"{index + 1}: Type: {dsiBlock.Type} Name: {dsName.GetValue()}");
       position.Next();
       index++;
     }
@@ -287,23 +287,23 @@ internal static class Program
 
   private static void ExploreDataStructures()
   {
-    DiskLinkedListFactory<DataStructureInfoBlock> factory = 
+    DiskLinkedListFactory<DataStructureInfoBlock> factory =
       DiskBlockManager.LinkedListManager.CreateFactory<DataStructureInfoBlock>(DataStructureBlockTypeIndex);
 
     DiskLinkedList<DataStructureInfoBlock> list = factory.LoadExisting(DiskBlockManager.GetHeaderBlock().Address1);
     DiskLinkedList<DataStructureInfoBlock>.Position position = list.GetFirst();
     DataStructureInfoBlock dsiBlock = position.Value;
-    
+
     Console.WriteLine("Which data structure to you want to explore:");
     Console.WriteLine("--------------------------------------------");
 
     int index = 0;
-    
+
     while (!position.IsPastTail)
     {
-      var dsName = DiskBlockManager.ImmutableStringFactory.LoadExisting(position.Value.NameAddress);
+      DiskImmutableString dsName = DiskBlockManager.ImmutableStringFactory.LoadExisting(position.Value.NameAddress);
 
-      Console.WriteLine($"{index+1}: Type: {dsiBlock.Type} Name: {dsName.GetValue()} Data Address: {position.Value.DataAddress}");
+      Console.WriteLine($"{index + 1}: Type: {dsiBlock.Type} Name: {dsName.GetValue()} Data Address: {position.Value.DataAddress}");
       position.Next();
       index++;
     }
@@ -312,9 +312,9 @@ internal static class Program
     string response = Console.ReadLine();
     if (TryParse(response, out int responseVal))
     {
-      var lllFactory = DiskBlockManager.LinkedListManager.CreateFactory<long>(DiskBlockManager.LongBlockType);
-      Console.WriteLine($"Loading linked list at address: {list[responseVal-1].DataAddress}");
-      var linkedList = lllFactory.LoadExisting(list[responseVal - 1].DataAddress);
+      DiskLinkedListFactory<long> lllFactory = DiskBlockManager.LinkedListManager.CreateFactory<long>(DiskBlockManager.LongBlockType);
+      Console.WriteLine($"Loading linked list at address: {list[responseVal - 1].DataAddress}");
+      DiskLinkedList<long> linkedList = lllFactory.LoadExisting(list[responseVal - 1].DataAddress);
       var explorer = new LinkedListDataExplorer<long>(linkedList);
       explorer.Explore();
     }
