@@ -132,9 +132,9 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
 
   public DiskImmutableStringFactory ImmutableStringFactory { get; }
 
-  private IList<BlockTypeMetadataBlock> BlockTypeMetadataBlocksList { get; set; }
+  public IList<BlockTypeMetadataBlock> BlockTypeMetadataBlocksList { get; set; }
 
-  private IList<int> RegisteredBlockTypes { get; set; }
+  public IList<int> RegisteredBlockTypes { get; set; }
 
   private int HeaderBlockSize => Marshal.SizeOf<HeaderBlock>();
 
@@ -192,7 +192,7 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
     bool replaceCachedCopy = true)
   {
     ReadBlock<BlockTypeMetadataBlock>(
-      HeaderBlockSize + ClientHeaderBlockSize + blockTypeIndex * BlockTypeMetadataBlockSize - 1,
+      HeaderBlockSize + ClientHeaderBlockSize + blockTypeIndex * BlockTypeMetadataBlockSize,
       out output
     );
     if (replaceCachedCopy)
@@ -256,7 +256,7 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
     bool replaceCachedCopy = true)
   {
     WriteBlock<BlockTypeMetadataBlock>(
-      HeaderBlockSize + ClientHeaderBlockSize + blockTypeIndex * BlockTypeMetadataBlockSize - 1,
+      HeaderBlockSize + ClientHeaderBlockSize + blockTypeIndex * BlockTypeMetadataBlockSize,
       ref input
     );
     if (replaceCachedCopy)
@@ -285,7 +285,8 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
 
   public short RegisterBlockType<TData>() where TData : struct
   {
-    RegisteredBlockTypes.Add(Marshal.SizeOf<TData>());
+    int size = Marshal.SizeOf<TData>();
+    RegisteredBlockTypes.Add(size);
     return (short) (RegisteredBlockTypes.Count - 1);
   }
 

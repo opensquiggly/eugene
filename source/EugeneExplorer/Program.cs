@@ -39,6 +39,7 @@ internal static class Program
       Console.WriteLine("3. Show current data file status");
       Console.WriteLine("4. Close current data file");
       Console.WriteLine("5. Add a new data structure");
+      Console.WriteLine("6. Print registered block type sizes");
       Console.WriteLine("X. Exit program");
       Console.WriteLine();
       Console.Write("Enter selection: ");
@@ -65,6 +66,10 @@ internal static class Program
         
         case "5":
           AddNewDataStructure();
+          break;
+        
+        case "6":
+          PrintRegisteredBlockTypes();
           break;
         
         case "x": 
@@ -129,19 +134,6 @@ internal static class Program
     
     IsOpen = true;
     FileName = filename;
-
-    // var factory = DiskBlockManager.ArrayOfLongFactory;
-    // var array1 = factory.AppendNew(10);
-    // Console.WriteLine("array1.Addresss = {0}", array1.Address);
-    // array1.AddItem(123);
-    // array1.AddItem(456);
-    // array1.AddItem(789);
-    // DiskBlockManager.Close();
-    // DiskBlockManager.CreateOrOpen(filename);
-    // var array2 = factory.LoadExisting(array1.Address);
-    // Console.WriteLine(array2[0]);
-    // Console.WriteLine(array2[1]);
-    // Console.WriteLine(array2[2]);
   }
 
   private static void OpenExistingDataFile()
@@ -206,6 +198,17 @@ internal static class Program
     IsOpen = false;
   }
 
+  private static void PrintRegisteredBlockTypes()
+  {
+    int index = 0;
+    
+    foreach (var btmb in DiskBlockManager.BlockTypeMetadataBlocksList)
+    {
+      Console.WriteLine($"Index: {index} Item Size: {btmb.ItemSize}");
+      index++;
+    }
+  }
+
   private static void AddNewDataStructure()
   {
     Console.WriteLine();
@@ -218,15 +221,27 @@ internal static class Program
     Console.WriteLine("6. Linked List of Immutable Strings");
     Console.Write("> Enter Selection: ");
     string response = Console.ReadLine();
+    
+    Console.Write("> Enter Data Structure Name: ");
+    string name = Console.ReadLine();
+    
+    Console.Write($"> Ready to add new data structure '{name}' (y/n): ");
+    string confirm = Console.ReadLine();
+
+    if (confirm.ToLower() != "y")
+    {
+      return;
+    }
 
     DataStructureInfoBlock infoBlock = default;
     
     switch (response.ToLower())
     {
       case "4":
+        DiskImmutableString nameString = DiskBlockManager.ImmutableStringFactory.Append(name);
         infoBlock.Type = 4;
         infoBlock.MaxItems = 0;
-        infoBlock.NameAddress = 0; // Not implemented
+        infoBlock.NameAddress = nameString.Address;
         DataStructureInfoList.AddLast(infoBlock);
         break;
       
