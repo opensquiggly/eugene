@@ -1,8 +1,10 @@
 ﻿using Eugene;
+using EugeneExplorer.Blocks;
 
 namespace EugeneExplorer;
 
-using System.Globalization;
+using Eugene.Blocks;
+using Eugene.Collections;
 
 internal static class Program
 {
@@ -13,6 +15,7 @@ internal static class Program
   static Program()
   {
     DiskBlockManager = new DiskBlockManager();
+    DataStructureBlockTypeIndex = DiskBlockManager.RegisterBlockType<DataStructureInfoBlock>();
   }
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -21,7 +24,7 @@ internal static class Program
 
   internal static void Main(string[] args)
   {
-    Console.WriteLine("Welcome to Eugene Explorer\n\n");
+    Console.WriteLine("\nWelcome to Eugene Explorer");
 
     bool finished = false;
 
@@ -30,11 +33,12 @@ internal static class Program
       Console.WriteLine();
       Console.WriteLine("Main Menu");
       Console.WriteLine("---------");
-      Console.WriteLine("1. Create a new data file");
+      PrintCurrentDataFileStatus();
+      Console.WriteLine("1. Create and open new data file");
       Console.WriteLine("2. Open an existing data file");
-      Console.WriteLine("3. Show existing data structures");
-      Console.WriteLine("4. Add a new data structure");
-      Console.WriteLine("5. Manage an existing data structure");
+      Console.WriteLine("3. Show current data file status");
+      Console.WriteLine("4. Close current data file");
+      Console.WriteLine("5. Add a new data structure");
       Console.WriteLine("X. Exit program");
       Console.WriteLine();
       Console.Write("Enter selection: ");
@@ -43,8 +47,29 @@ internal static class Program
 
       switch (response.ToLower())
       {
-        case "1": CreateNewDataFile(); break;
-        case "x": finished = true; break;
+        case "1": 
+          CreateNewDataFile(); 
+          break;
+        
+        case "2": 
+          OpenExistingDataFile();
+          break;
+        
+        case "3":
+          PrintCurrentDataFileStatus();
+          break;
+        
+        case "4":
+          CloseCurrentDataFile();
+          break;
+        
+        case "5":
+          AddNewDataStructure();
+          break;
+        
+        case "x": 
+          finished = true; 
+          break;
       }
     }
 
@@ -56,17 +81,157 @@ internal static class Program
   // /////////////////////////////////////////////////////////////////////////////////////////////
   
   private static DiskBlockManager DiskBlockManager { get; }
+  
+  private static string FileName { get; set; }
+
+  private static bool IsOpen { get; set; } = false;
+  
+  private static short DataStructureBlockTypeIndex { get; set; }
+  
+  private static DiskLinkedList<DataStructureInfoBlock> DataStructureInfoList { get; set; }
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
-  // Private Methods
+  // Private Static Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
   private static void CreateNewDataFile()
   {
     Console.Write("Enter data file name: ");
     string filename = Console.ReadLine();
-    DiskBlockManager.CreateOrOpen(filename);
+
+    if (File.Exists(filename))
+    {
+      Console.WriteLine($"File name '{filename}' already exists.");
+      Console.Write("Do you want to delete and recreate it? (y/n) : ");
+      string response = Console.ReadLine();
+      if (response.ToLower() == "y")
+      {
+        File.Delete(filename);
+      }
+      else
+      {
+        return;
+      }
+    }
+
     DiskBlockManager.Close();
     DiskBlockManager.CreateOrOpen(filename);
+    
+    DiskLinkedListFactory<DataStructureInfoBlock> factory = DiskBlockManager.LinkedListManager.CreateFactory<DataStructureInfoBlock>(DataStructureBlockTypeIndex);
+    DataStructureInfoList = factory.AppendNew();
+
+    HeaderBlock headerBlock = DiskBlockManager.GetHeaderBlock();
+    headerBlock.Address1 = DataStructureInfoList.Address;
+
+    DiskBlockManager.WriteHeaderBlock(ref headerBlock);
+    
+    Console.WriteLine($"Data Structure List Stored at Address: {headerBlock.Address1}");
+    
+    IsOpen = true;
+    FileName = filename;
+
+    // var factory = DiskBlockManager.ArrayOfLongFactory;
+    // var array1 = factory.AppendNew(10);
+    // Console.WriteLine("array1.Addresss = {0}", array1.Address);
+    // array1.AddItem(123);
+    // array1.AddItem(456);
+    // array1.AddItem(789);
+    // DiskBlockManager.Close();
+    // DiskBlockManager.CreateOrOpen(filename);
+    // var array2 = factory.LoadExisting(array1.Address);
+    // Console.WriteLine(array2[0]);
+    // Console.WriteLine(array2[1]);
+    // Console.WriteLine(array2[2]);
+  }
+
+  private static void OpenExistingDataFile()
+  {
+    Console.Write("Enter data file name: ");
+    string filename = Console.ReadLine();
+
+    if (!File.Exists(filename))
+    {
+      Console.WriteLine($"File name '{filename}' does not exist.");
+      Console.WriteLine("Use option 1 from the Main Menu to create a new file");
+      return;
+    } 
+    
+    DiskBlockManager.Close();
+    DiskBlockManager.CreateOrOpen(filename);
+    
+    HeaderBlock headerBlock = DiskBlockManager.GetHeaderBlock();
+
+    DiskLinkedListFactory<DataStructureInfoBlock> factory = DiskBlockManager.LinkedListManager.CreateFactory<DataStructureInfoBlock>(DataStructureBlockTypeIndex);
+    DataStructureInfoList = factory.LoadExisting(headerBlock.Address1);
+    
+    Console.WriteLine($"Data Structure List Loaded from Address: {headerBlock.Address1}");   
+    Console.WriteLine($"There are {DataStructureInfoList.Count} data structures");
+
+    IsOpen = true;
+    FileName = filename;
+
+    Console.WriteLine($"File name {filename} is now open for exploration.");
+  }
+  
+  private static void PrintCurrentDataFileStatus()
+  {
+    if (IsOpen)
+    {
+      Console.WriteLine($"The data file '{FileName}' is currently open");
+    }
+    else
+    {
+      Console.WriteLine("There is no current data file open");
+    }
+  }
+
+  private static void CloseCurrentDataFile()
+  {
+    if (IsOpen)
+    {
+      Console.WriteLine($"The data file '{FileName}' is currently open.");
+      Console.Write("Are you sure want to close it? (y/n) : ");
+      string response = Console.ReadLine();
+      if (response.ToLower() != "y")
+      {
+        return;
+      }
+      Console.WriteLine($"Closing current data file: {FileName}");
+    }
+    else
+    {
+      Console.WriteLine("There is no current data file open");
+    }
+
+    IsOpen = false;
+  }
+
+  private static void AddNewDataStructure()
+  {
+    Console.WriteLine();
+    Console.WriteLine("Enter the type of data structure you wish to create");
+    Console.WriteLine("1. Array of Long");
+    Console.WriteLine("2. Array of Fixed Strings");
+    Console.WriteLine("3. Array of Immutable Strings");
+    Console.WriteLine("4. Linked List of Long");
+    Console.WriteLine("5. Linked List of Fixed Strings");
+    Console.WriteLine("6. Linked List of Immutable Strings");
+    Console.Write("> Enter Selection: ");
+    string response = Console.ReadLine();
+
+    DataStructureInfoBlock infoBlock = default;
+    
+    switch (response.ToLower())
+    {
+      case "4":
+        infoBlock.Type = 4;
+        infoBlock.MaxItems = 0;
+        infoBlock.NameAddress = 0; // Not implemented
+        DataStructureInfoList.AddLast(infoBlock);
+        break;
+      
+      default:
+        break;
+    }
   }
 }

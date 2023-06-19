@@ -98,13 +98,13 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
 
   private short ArrayBlockType { get; set; }
 
-  private short CharBlockType { get; set; }
+  public short CharBlockType { get; set; }
 
-  private short ShortBlockType { get; set; }
+  public short ShortBlockType { get; set; }
 
-  private short IntBlockType { get; set; }
+  public short IntBlockType { get; set; }
 
-  private short LongBlockType { get; set; }
+  public short LongBlockType { get; set; }
 
   private short LinkedListBlockType { get; set; }
 
@@ -243,7 +243,7 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
     WriteRawBlock(address, buffer);
   }
 
-  private void WriteHeaderBlock(ref HeaderBlock input, bool replaceCachedCopy = true)
+  public void WriteHeaderBlock(ref HeaderBlock input, bool replaceCachedCopy = true)
   {
     WriteBlock<HeaderBlock>(0, ref input);
     if (replaceCachedCopy)
@@ -357,6 +357,8 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
     Flush();
     Close();
   }
+
+  public HeaderBlock GetHeaderBlock() => this._headerBlock;
 
   public void ReadDataBlock<TStruct>(int blockTypeIndex, long address, out TStruct input) where TStruct : struct
   {
