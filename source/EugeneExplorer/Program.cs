@@ -1,4 +1,4 @@
-﻿namespace EugeneExplorer;
+namespace EugeneExplorer;
 
 internal static class Program
 {
@@ -42,51 +42,51 @@ internal static class Program
 
       switch (response.ToLower())
       {
-        case "1": 
-          CreateNewDataFile(); 
+        case "1":
+          CreateNewDataFile();
           break;
-        
-        case "2": 
+
+        case "2":
           OpenExistingDataFile();
           break;
-        
+
         case "3":
           PrintCurrentDataFileStatus();
           break;
-        
+
         case "4":
           CloseCurrentDataFile();
           break;
-        
+
         case "5":
           AddNewDataStructure();
           break;
-        
+
         case "6":
           PrintRegisteredBlockTypes();
           break;
-        
-        case "x": 
-          finished = true; 
+
+        case "x":
+          finished = true;
           break;
       }
     }
 
     DiskBlockManager.Close();
   }
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Private Static Properties
   // /////////////////////////////////////////////////////////////////////////////////////////////
-  
+
   private static DiskBlockManager DiskBlockManager { get; }
-  
+
   private static string FileName { get; set; }
 
   private static bool IsOpen { get; set; } = false;
-  
+
   private static short DataStructureBlockTypeIndex { get; set; }
-  
+
   private static DiskLinkedList<DataStructureInfoBlock> DataStructureInfoList { get; set; }
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -115,7 +115,7 @@ internal static class Program
 
     DiskBlockManager.Close();
     DiskBlockManager.CreateOrOpen(filename);
-    
+
     DiskLinkedListFactory<DataStructureInfoBlock> factory = DiskBlockManager.LinkedListManager.CreateFactory<DataStructureInfoBlock>(DataStructureBlockTypeIndex);
     DataStructureInfoList = factory.AppendNew();
 
@@ -123,9 +123,9 @@ internal static class Program
     headerBlock.Address1 = DataStructureInfoList.Address;
 
     DiskBlockManager.WriteHeaderBlock(ref headerBlock);
-    
+
     Console.WriteLine($"Data Structure List Stored at Address: {headerBlock.Address1}");
-    
+
     IsOpen = true;
     FileName = filename;
   }
@@ -140,17 +140,17 @@ internal static class Program
       Console.WriteLine($"File name '{filename}' does not exist.");
       Console.WriteLine("Use option 1 from the Main Menu to create a new file");
       return;
-    } 
-    
+    }
+
     DiskBlockManager.Close();
     DiskBlockManager.CreateOrOpen(filename);
-    
+
     HeaderBlock headerBlock = DiskBlockManager.GetHeaderBlock();
 
     DiskLinkedListFactory<DataStructureInfoBlock> factory = DiskBlockManager.LinkedListManager.CreateFactory<DataStructureInfoBlock>(DataStructureBlockTypeIndex);
     DataStructureInfoList = factory.LoadExisting(headerBlock.Address1);
-    
-    Console.WriteLine($"Data Structure List Loaded from Address: {headerBlock.Address1}");   
+
+    Console.WriteLine($"Data Structure List Loaded from Address: {headerBlock.Address1}");
     Console.WriteLine($"There are {DataStructureInfoList.Count} data structures");
 
     IsOpen = true;
@@ -158,7 +158,7 @@ internal static class Program
 
     Console.WriteLine($"File name {filename} is now open for exploration.");
   }
-  
+
   private static void PrintCurrentDataFileStatus()
   {
     if (IsOpen)
@@ -195,8 +195,8 @@ internal static class Program
   private static void PrintRegisteredBlockTypes()
   {
     int index = 0;
-    
-    foreach (var btmb in DiskBlockManager.BlockTypeMetadataBlocksList)
+
+    foreach (BlockTypeMetadataBlock btmb in DiskBlockManager.BlockTypeMetadataBlocksList)
     {
       Console.WriteLine($"Index: {index} Item Size: {btmb.ItemSize}");
       index++;
@@ -215,10 +215,10 @@ internal static class Program
     Console.WriteLine("6. Linked List of Immutable Strings");
     Console.Write("> Enter Selection: ");
     string response = Console.ReadLine();
-    
+
     Console.Write("> Enter Data Structure Name: ");
     string name = Console.ReadLine();
-    
+
     Console.Write($"> Ready to add new data structure '{name}' (y/n): ");
     string confirm = Console.ReadLine();
 
@@ -228,7 +228,7 @@ internal static class Program
     }
 
     DataStructureInfoBlock infoBlock = default;
-    
+
     switch (response.ToLower())
     {
       case "4":
@@ -238,7 +238,7 @@ internal static class Program
         infoBlock.NameAddress = nameString.Address;
         DataStructureInfoList.AddLast(infoBlock);
         break;
-      
+
       default:
         break;
     }
