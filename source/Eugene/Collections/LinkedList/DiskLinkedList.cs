@@ -1,5 +1,7 @@
 namespace Eugene.Collections;
 
+using System.Runtime.Versioning;
+
 public class DiskLinkedList<TData> where TData : struct
 {
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -27,6 +29,26 @@ public class DiskLinkedList<TData> where TData : struct
   public int LinkedListNodeBlockTypeIndex => Factory.LinkedListNodeBlockTypeIndex;
 
   public int DataBlockTypeIndex => Factory.DataBlockTypeIndex;
+
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+  // Public Indexer
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+
+  public TData this[int index]
+  {
+    get
+    {
+      Position pos = GetFirst();
+      int currentIndex = 0;
+      while (currentIndex < index)
+      {
+        pos.Next();
+        currentIndex++;
+      }
+
+      return pos.Value;
+    }
+  }
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Methods
@@ -76,6 +98,22 @@ public class DiskLinkedList<TData> where TData : struct
     }
   }
 
+  public Position GetFirst()
+  {
+    DiskBlockManager.ReadDataBlock<LinkedListBlock>(LinkedListBlockTypeIndex, Address, out LinkedListBlock listBlock);
+
+    if (listBlock.HeadAddress == 0)
+    {
+      return new Position(this, listBlock);
+    }
+    else
+    {
+      DiskBlockManager.ReadDataBlock<LinkedListNodeBlock>(LinkedListNodeBlockTypeIndex, listBlock.HeadAddress,
+        out LinkedListNodeBlock nodeBlock);
+      return new Position(listBlock.HeadAddress, this, listBlock, nodeBlock);
+    }
+  }
+
   public void InsertItemBefore(int index, TData item)
   {
     throw new NotImplementedException();
@@ -84,5 +122,81 @@ public class DiskLinkedList<TData> where TData : struct
   public void InsertItemAfter(int index, TData item)
   {
     throw new NotImplementedException();
+  }
+
+  public class Position
+  {
+    public Position(DiskLinkedList<TData> list, LinkedListBlock listBlock)
+    {
+      List = list;
+      IsEmpty = true;
+      NavigatedPastTail = false;
+    }
+
+    public Position(long nodeAddress, DiskLinkedList<TData> list, LinkedListBlock listBlock, LinkedListNodeBlock nodeBlock)
+    {
+      List = list;
+      NodeAddress = nodeAddress;
+      ListBlock = listBlock;
+      NodeBlock = nodeBlock;
+      IsEmpty = false;
+      NavigatedPastTail = false;
+    }
+
+    private DiskLinkedList<TData> List { get; }
+
+    private long NodeAddress { get; }
+
+    private LinkedListBlock ListBlock { get; }
+
+    private LinkedListNodeBlock NodeBlock { get; set; }
+
+    private bool IsEmpty { get; }
+
+    private bool NavigatedPastTail { get; set; }
+
+    public TData Value
+    {
+      get
+      {
+        if (IsPastHead || IsPastTail)
+        {
+          throw new IndexOutOfRangeException();
+        }
+
+        List.DiskBlockManager.ReadDataBlock<TData>(List.DataBlockTypeIndex, NodeBlock.DataAddress, out TData val);
+        return val;
+      }
+    }
+
+    public bool IsPastHead =>
+        // ReSharper disable once ArrangeAccessorOwnerBody
+        IsEmpty;
+
+    public bool IsPastTail =>
+        // ReSharper disable once ArrangeAccessorOwnerBody
+        IsEmpty || NavigatedPastTail;
+
+    public void Next()
+    {
+      if (IsPastTail)
+      {
+        return;
+      }
+
+      if (NodeBlock.NextAddress == 0)
+      {
+        NavigatedPastTail = true;
+        return;
+      }
+
+      List.DiskBlockManager.ReadDataBlock<LinkedListNodeBlock>(List.LinkedListNodeBlockTypeIndex, NodeBlock.NextAddress,
+        out LinkedListNodeBlock newNodeBlock);
+      NodeBlock = newNodeBlock;
+    }
+
+    public void Previous()
+    {
+    }
   }
 }
