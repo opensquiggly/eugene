@@ -5,6 +5,21 @@ within the disk file. A DiskArray has a maximum size, which cannot be exceeded a
 it is created. The number of elements in the array can range from 0 up to and including
 the maximum size.
 
+## Performance
+
+* Append Item: O(1)
+* Insert Item: O(N)
+* Retrieve Item: O(1)
+* Linear Search: O(N)
+* Binary Search: O(logN)
+* Delete Item: O(N)
+* Get First / Get Next: O(1)
+* Get Count: O(1)
+
+DiskArrays are useful for storing small-to-medium sized amounts of data where the maximum
+number of items is known in advance. The downside to DiskArrays is that they require a
+contiguous section of disk space, and cannot be resized after they are created.
+
 ## Creating a DiskArray Factory
 
 Sample Code:

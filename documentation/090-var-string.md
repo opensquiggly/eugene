@@ -1,0 +1,3 @@
+# About DiskVarString
+
+TODO

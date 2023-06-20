@@ -1,0 +1,32 @@
+namespace Eugene.Collections.BTree;
+
+public class DiskBTreeFactory<TKey, TData>
+  where TKey : struct
+  where TData : struct
+{
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+  // Constructors
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+
+  public DiskBTreeFactory(DiskBTreeManager manager, short keyBlockTypeIndex, short dataBlockTypeIndex)
+  {
+    // Manager = manager;
+    // DataBlockTypeIndex = dataBlockTypeIndex;
+  }
+  
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+  // Public Methods
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+
+  public DiskBTree<TKey, TData> AppendNew()
+  {
+    // Create a DiskBTree block
+    
+    return null;
+  }
+
+  public DiskBTree<TKey, TData> LoadExisting(long address)
+  {
+    return null;
+  }
+}
