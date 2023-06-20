@@ -19,24 +19,23 @@ internal static class Program
 
   internal static void Main(string[] args)
   {
-    Console.WriteLine("\nWelcome to Eugene Explorer");
 
     bool finished = false;
 
     while (!finished)
     {
+      ClearScreen();
+      Console.WriteLine("\nWelcome to Eugene Explorer");
+      Console.WriteLine();
+      PrintCurrentDataFileStatus();
       Console.WriteLine();
       Console.WriteLine("Main Menu");
       Console.WriteLine("---------");
-      PrintCurrentDataFileStatus();
       Console.WriteLine("1. Create and open new data file");
       Console.WriteLine("2. Open an existing data file");
-      Console.WriteLine("3. Show current data file status");
-      Console.WriteLine("4. Close current data file");
-      Console.WriteLine("5. Add a new data structure");
-      Console.WriteLine("6. Print registered block type sizes");
-      Console.WriteLine("7. Print data structures");
-      Console.WriteLine("8. Explore or modify a data structure");
+      Console.WriteLine("3. Close current data file");
+      Console.WriteLine("4. Print registered block type sizes");
+      Console.WriteLine("5. Explore or modify a data structure");
       Console.WriteLine("X. Exit program");
       Console.WriteLine();
       Console.Write("Enter selection: ");
@@ -54,26 +53,14 @@ internal static class Program
           break;
 
         case "3":
-          PrintCurrentDataFileStatus();
-          break;
-
-        case "4":
           CloseCurrentDataFile();
           break;
 
-        case "5":
-          AddNewDataStructure();
-          break;
-
-        case "6":
+        case "4":
           PrintRegisteredBlockTypes();
           break;
 
-        case "7":
-          PrintDataStructures();
-          break;
-
-        case "8":
+        case "5":
           ExploreDataStructures();
           break;
 
@@ -104,8 +91,21 @@ internal static class Program
   // Private Static Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
+  private static void ClearScreen()
+  {
+    Console.Write("\u001b[2J\u001b[H");
+  }
+
+  private static void Pause()
+  {
+    Console.WriteLine();
+    Console.Write("Press <Enter> to return to Main Menu ... ");
+    Console.ReadLine();
+  }
+
   private static void CreateNewDataFile()
   {
+    Console.WriteLine();
     Console.Write("Enter data file name: ");
     string filename = Console.ReadLine();
 
@@ -143,6 +143,7 @@ internal static class Program
 
   private static void OpenExistingDataFile()
   {
+    Console.WriteLine();
     Console.Write("Enter data file name: ");
     string filename = Console.ReadLine();
 
@@ -186,6 +187,7 @@ internal static class Program
   {
     if (IsOpen)
     {
+      Console.WriteLine();
       Console.WriteLine($"The data file '{FileName}' is currently open.");
       Console.Write("Are you sure want to close it? (y/n) : ");
       string response = Console.ReadLine();
@@ -195,10 +197,6 @@ internal static class Program
       }
       Console.WriteLine($"Closing current data file: {FileName}");
     }
-    else
-    {
-      Console.WriteLine("There is no current data file open");
-    }
 
     IsOpen = false;
   }
@@ -207,15 +205,23 @@ internal static class Program
   {
     int index = 0;
 
+    ClearScreen();
+    Console.WriteLine();
+    Console.WriteLine("Registered Block Types");
+    Console.WriteLine("----------------------");
+
     foreach (BlockTypeMetadataBlock btmb in DiskBlockManager.BlockTypeMetadataBlocksList)
     {
       Console.WriteLine($"Index: {index} Item Size: {btmb.ItemSize}");
       index++;
     }
+
+    Pause();
   }
 
   private static void AddNewDataStructure()
   {
+    ClearScreen();
     Console.WriteLine();
     Console.WriteLine("Enter the type of data structure you wish to create");
     Console.WriteLine("1. Array of Long");
@@ -266,6 +272,9 @@ internal static class Program
     DiskLinkedList<DataStructureInfoBlock>.Position position = list.GetFirst();
     DataStructureInfoBlock dsiBlock = position.Value;
 
+    ClearScreen();
+
+    Console.WriteLine();
     Console.WriteLine("Here are your current data structures:");
     Console.WriteLine("--------------------------------------");
 
@@ -280,9 +289,7 @@ internal static class Program
       index++;
     }
 
-    Console.WriteLine();
-    Console.WriteLine("Press <Enter> to return to Main Menu");
-    Console.ReadLine();
+    Pause();
   }
 
   private static void ExploreDataStructures()
@@ -291,32 +298,55 @@ internal static class Program
       DiskBlockManager.LinkedListManager.CreateFactory<DataStructureInfoBlock>(DataStructureBlockTypeIndex);
 
     DiskLinkedList<DataStructureInfoBlock> list = factory.LoadExisting(DiskBlockManager.GetHeaderBlock().Address1);
-    DiskLinkedList<DataStructureInfoBlock>.Position position = list.GetFirst();
-    DataStructureInfoBlock dsiBlock = position.Value;
 
-    Console.WriteLine("Which data structure to you want to explore:");
-    Console.WriteLine("--------------------------------------------");
-
-    int index = 0;
-
-    while (!position.IsPastTail)
+    while (true)
     {
-      DiskImmutableString dsName = DiskBlockManager.ImmutableStringFactory.LoadExisting(position.Value.NameAddress);
+      ClearScreen();
+      Console.WriteLine();
+      Console.WriteLine("Enter a data structure to explore:");
+      Console.WriteLine("----------------------------------");
 
-      Console.WriteLine($"{index + 1}: Type: {dsiBlock.Type} Name: {dsName.GetValue()} Data Address: {position.Value.DataAddress}");
-      position.Next();
-      index++;
-    }
+      int index = 0;
+      DiskLinkedList<DataStructureInfoBlock>.Position position = list.GetFirst();
+      DataStructureInfoBlock dsiBlock = position.Value;
 
-    Console.WriteLine("> Enter Selection: ");
-    string response = Console.ReadLine();
-    if (TryParse(response, out int responseVal))
-    {
-      DiskLinkedListFactory<long> lllFactory = DiskBlockManager.LinkedListManager.CreateFactory<long>(DiskBlockManager.LongBlockType);
-      Console.WriteLine($"Loading linked list at address: {list[responseVal - 1].DataAddress}");
-      DiskLinkedList<long> linkedList = lllFactory.LoadExisting(list[responseVal - 1].DataAddress);
-      var explorer = new LinkedListDataExplorer<long>(linkedList);
-      explorer.Explore();
+      while (!position.IsPastTail)
+      {
+        DiskImmutableString dsName = DiskBlockManager.ImmutableStringFactory.LoadExisting(position.Value.NameAddress);
+
+        Console.WriteLine(
+          $"{index + 1}: Type: {dsiBlock.Type} Name: {dsName.GetValue()} Data Address: {position.Value.DataAddress}");
+        position.Next();
+        index++;
+      }
+
+      Console.WriteLine();
+      Console.WriteLine("Other Options");
+      Console.WriteLine("-------------");
+      Console.WriteLine("A. Add new data structure");
+      Console.WriteLine("X. Exit to Main Menu");
+
+      Console.WriteLine();
+      Console.Write("Enter Selection: ");
+      string response = Console.ReadLine();
+
+      if (response.ToLower() == "a")
+      {
+        AddNewDataStructure();
+      }
+      else if (response.ToLower() == "x")
+      {
+        break;
+      }
+      else if (TryParse(response, out int responseVal))
+      {
+        DiskLinkedListFactory<long> lllFactory =
+          DiskBlockManager.LinkedListManager.CreateFactory<long>(DiskBlockManager.LongBlockType);
+        Console.WriteLine($"Loading linked list at address: {list[responseVal - 1].DataAddress}");
+        DiskLinkedList<long> linkedList = lllFactory.LoadExisting(list[responseVal - 1].DataAddress);
+        var explorer = new LinkedListDataExplorer<long>(linkedList);
+        explorer.Explore();
+      }
     }
   }
 }

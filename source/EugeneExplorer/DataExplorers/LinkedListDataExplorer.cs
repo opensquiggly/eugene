@@ -9,12 +9,27 @@ public class LinkedListDataExplorer<TData> where TData : struct
 
   private DiskLinkedList<long> LinkedList { get; }
 
+  private void ClearScreen()
+  {
+    Console.Write("\u001b[2J\u001b[H");
+  }
+
+  private void Pause()
+  {
+    Console.WriteLine();
+    Console.Write("Press <Enter> to return to Main Menu ... ");
+    Console.ReadLine();
+  }
+
   private void PrintListValues()
   {
     int index = 0;
     DiskLinkedList<long>.Position position = LinkedList.GetFirst();
 
+    ClearScreen();
+    Console.WriteLine();
     Console.WriteLine($"Count: {LinkedList.Count}");
+    Console.WriteLine();
 
     while (!position.IsPastTail)
     {
@@ -22,6 +37,8 @@ public class LinkedListDataExplorer<TData> where TData : struct
       index++;
       position.Next();
     }
+
+    Pause();
   }
 
   private void AddNewValue()
@@ -40,13 +57,15 @@ public class LinkedListDataExplorer<TData> where TData : struct
 
     while (!finished)
     {
+      ClearScreen();
       Console.WriteLine();
       Console.WriteLine("Linked List Data Explorer Menu");
       Console.WriteLine("------------------------------");
       Console.WriteLine("1. Print all values in list");
       Console.WriteLine("2. Add a new value to end of list");
-      Console.WriteLine("X. Exit to Main Menu");
-      Console.Write("> Enter Selection: ");
+      Console.WriteLine("X. Exit to Explorer Menu");
+      Console.WriteLine();
+      Console.Write("Enter Selection: ");
       string response = Console.ReadLine();
 
       switch (response.ToLower())
