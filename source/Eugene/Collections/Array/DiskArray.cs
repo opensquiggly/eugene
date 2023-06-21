@@ -11,6 +11,16 @@ public class DiskArray<TData> where TData : struct, IComparable
     Factory = factory;
     Address = address;
   }
+  
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+  // Private Properties / Member Variables
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+
+  private ArrayBlock _arrayBlock = default;
+
+  private bool IsLoaded { get; set; } = false;
+
+  private ArrayBlock ArrayBlock => _arrayBlock;
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Properties
@@ -24,6 +34,21 @@ public class DiskArray<TData> where TData : struct, IComparable
 
   public DiskArrayFactory<TData> Factory { get; }
 
+  public int Count => GetCount();
+  
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+  // Private Methods
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+
+  private void EnsureLoaded()
+  {
+    if (!IsLoaded)
+    {
+      DiskBlockManager.ReadDataBlock<ArrayBlock>(ArrayBlockTypeIndex, Address, out _arrayBlock);
+      IsLoaded = true;
+    }
+  }
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Indexer
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -35,6 +60,10 @@ public class DiskArray<TData> where TData : struct, IComparable
       GetAt(index, out TData temp);
       return temp;
     }
+    set
+    {
+      SetAt(index, value);
+    }
   }
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -43,36 +72,69 @@ public class DiskArray<TData> where TData : struct, IComparable
 
   public void AddItem(TData item)
   {
-    DiskBlockManager.ReadDataBlock<ArrayBlock>(ArrayBlockTypeIndex, Address, out ArrayBlock block);
-    if (block.Count == block.MaxItems)
+    EnsureLoaded();
+    
+    if (ArrayBlock.Count == ArrayBlock.MaxItems)
     {
       throw new Exception("DiskArray: Maximum array size exceeded");
     }
 
     DiskBlockManager.WriteDataBlock(
       Factory.DataBlockTypeIndex,
-      block.DataAddress + block.DataSize * block.Count,
+      ArrayBlock.DataAddress + ArrayBlock.DataSize * ArrayBlock.Count,
       ref item
     );
 
-    block.Count++;
-    DiskBlockManager.WriteDataBlock(ArrayBlockTypeIndex, Address, ref block);
+    _arrayBlock.Count++;
+    DiskBlockManager.WriteDataBlock(ArrayBlockTypeIndex, Address, ref _arrayBlock);
 
     DiskBlockManager.Flush();
   }
 
   public void GetAt(int index, out TData item)
   {
-    DiskBlockManager.ReadDataBlock<ArrayBlock>(ArrayBlockTypeIndex, Address, out ArrayBlock block);
-    if (index < 0 || index > block.Count - 1)
+    EnsureLoaded();
+    
+    if (index < 0 || index > ArrayBlock.Count - 1)
     {
       throw new Exception("DiskArray: Requested index is outside the bounds of the array");
     }
 
     DiskBlockManager.ReadDataBlock(
       Factory.DataBlockTypeIndex,
-      block.DataAddress + block.DataSize * index,
+      ArrayBlock.DataAddress + ArrayBlock.DataSize * index,
       out item
     );
+  }
+  
+  public void SetAt(int index, TData item)
+  {
+    EnsureLoaded();
+    
+    // Note: We allow you to add new items to the end of the array so long as
+    // the MaxItems property doesn't get exceeded.
+    if (index < 0 || index > ArrayBlock.Count || index > ArrayBlock.MaxItems - 1)
+    {
+      throw new Exception("DiskArray: Requested index is outside the bounds of the array");
+    }
+
+    DiskBlockManager.WriteDataBlock(
+      Factory.DataBlockTypeIndex,
+      ArrayBlock.DataAddress + ArrayBlock.DataSize * index,
+      ref item
+    );
+
+    if (index == ArrayBlock.Count)
+    {
+      // Client added a new item to end of list. Increment the Count;
+      _arrayBlock.Count++;
+      DiskBlockManager.WriteDataBlock(ArrayBlockTypeIndex, Address, ref _arrayBlock);      
+    }
+  }  
+
+  public int GetCount()
+  {
+    EnsureLoaded();
+    return _arrayBlock.Count;
   }
 }
