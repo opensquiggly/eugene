@@ -12,4 +12,13 @@
     <PackageReference Include="TimeWarp.Fixie" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\source\Eugene\Eugene.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Infrastructure\" />
+    <Folder Include="Tests\" />
+  </ItemGroup>
+
 </Project>

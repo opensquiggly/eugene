@@ -1,0 +1,36 @@
+namespace Eugene.Collections;
+
+public class DiskBTreeManager
+{
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+  // Constructors
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+
+  public DiskBTreeManager(DiskBlockManager diskBlockManager, short btreeBlockTypeIndex, short nodeBlockTypeIndex)
+  {
+    DiskBlockManager = diskBlockManager;
+    BTreeBlockTypeIndex = btreeBlockTypeIndex;
+    NodeBlockTypeIndex = nodeBlockTypeIndex;
+  }
+
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+  // Public Methods
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+
+  public DiskBlockManager DiskBlockManager { get; }
+
+  public short BTreeBlockTypeIndex { get; }
+
+  public short NodeBlockTypeIndex { get; }
+
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+  // Public Properties
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+
+  public DiskBTreeFactory<TKey, TData> CreateFactory<TKey, TData>(short keyBlockTypeIndex, short dataBlockTypeIndex)
+    where TKey : struct, IComparable
+    where TData : struct, IComparable
+  {
+    return new DiskBTreeFactory<TKey, TData>(this, keyBlockTypeIndex, dataBlockTypeIndex);
+  }
+}
