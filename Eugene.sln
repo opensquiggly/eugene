@@ -20,8 +20,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EugeneExplorer", "source\Eu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eugene.Tests.MSTest", "tests\Eugene.Tests.MSTest\Eugene.Tests.MSTest.csproj", "{43A97C87-D95F-4B38-89EE-222CBE7B259D}"
 EndProject
-# Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eugene.Tests", "tests\Eugene.Tests\Eugene.Tests.csproj", "{B979BB63-8138-4DBB-977F-FD4B7011E8D3}"
-# EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eugene.Tests", "tests\Eugene.Tests\Eugene.Tests.csproj", "{B979BB63-8138-4DBB-977F-FD4B7011E8D3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
