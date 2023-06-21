@@ -1,3 +1,6 @@
+# Sample Unit Tests Using Fixie
+
+```
 namespace ConventionTest_;
 
 using FluentAssertions;
@@ -22,3 +25,12 @@ public class SimpleTest_Should_
     result.Should().Be(aExpectedDifference);
   }
 }
+```
+
+TimeWarp.Fixie tests conventions
+
+I don't know what this does, but here:
+
+```
+class EugeneTestConvention : TimeWarp.Fixie.TestingConvention { }
+```
