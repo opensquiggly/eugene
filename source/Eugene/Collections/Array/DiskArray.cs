@@ -11,7 +11,7 @@ public class DiskArray<TData> where TData : struct, IComparable
     Factory = factory;
     Address = address;
   }
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Private Properties / Member Variables
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -35,7 +35,7 @@ public class DiskArray<TData> where TData : struct, IComparable
   public DiskArrayFactory<TData> Factory { get; }
 
   public int Count => GetCount();
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Private Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -60,10 +60,7 @@ public class DiskArray<TData> where TData : struct, IComparable
       GetAt(index, out TData temp);
       return temp;
     }
-    set
-    {
-      SetAt(index, value);
-    }
+    set => SetAt(index, value);
   }
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -73,7 +70,7 @@ public class DiskArray<TData> where TData : struct, IComparable
   public void AddItem(TData item)
   {
     EnsureLoaded();
-    
+
     if (ArrayBlock.Count == ArrayBlock.MaxItems)
     {
       throw new Exception("DiskArray: Maximum array size exceeded");
@@ -94,7 +91,7 @@ public class DiskArray<TData> where TData : struct, IComparable
   public void GetAt(int index, out TData item)
   {
     EnsureLoaded();
-    
+
     if (index < 0 || index > ArrayBlock.Count - 1)
     {
       throw new Exception("DiskArray: Requested index is outside the bounds of the array");
@@ -106,11 +103,11 @@ public class DiskArray<TData> where TData : struct, IComparable
       out item
     );
   }
-  
+
   public void SetAt(int index, TData item)
   {
     EnsureLoaded();
-    
+
     // Note: We allow you to add new items to the end of the array so long as
     // the MaxItems property doesn't get exceeded.
     if (index < 0 || index > ArrayBlock.Count || index > ArrayBlock.MaxItems - 1)
@@ -128,9 +125,9 @@ public class DiskArray<TData> where TData : struct, IComparable
     {
       // Client added a new item to end of list. Increment the Count;
       _arrayBlock.Count++;
-      DiskBlockManager.WriteDataBlock(ArrayBlockTypeIndex, Address, ref _arrayBlock);      
+      DiskBlockManager.WriteDataBlock(ArrayBlockTypeIndex, Address, ref _arrayBlock);
     }
-  }  
+  }
 
   public int GetCount()
   {

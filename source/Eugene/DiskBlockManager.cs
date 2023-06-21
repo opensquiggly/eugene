@@ -66,7 +66,7 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
 
     ArrayBlockType = RegisterBlockType<ArrayBlock>();
     BTreeBlockType = RegisterBlockType<BTreeBlock>();
-    BTreeNodeBlockType = RegisterBlockType<BTreeNodeBlock>();   
+    BTreeNodeBlockType = RegisterBlockType<BTreeNodeBlock>();
     LinkedListBlockType = RegisterBlockType<LinkedListBlock>();
     LinkedListNodeBlockType = RegisterBlockType<LinkedListNodeBlock>();
 
@@ -104,9 +104,9 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
   public short IntBlockType { get; set; }
 
   public short LongBlockType { get; set; }
-  
+
   private short BTreeBlockType { get; set; }
-  
+
   private short BTreeNodeBlockType { get; set; }
 
   private short LinkedListBlockType { get; set; }
@@ -130,9 +130,9 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
   public DiskLinkedListManager LinkedListManager { get; set; }
 
   public DiskArrayManager ArrayManager { get; set; }
-  
+
   public DiskBTreeManager BTreeManager { get; set; }
-  
+
   public DiskFixedStringFactory FixedStringFactory { get; }
 
   public DiskImmutableStringFactory ImmutableStringFactory { get; }

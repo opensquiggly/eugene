@@ -1,6 +1,6 @@
 namespace Eugene.Collections;
 
-public class DiskBTreeNode<TKey, TData> 
+public class DiskBTreeNode<TKey, TData>
   where TKey : struct, IComparable
   where TData : struct, IComparable
 {
@@ -15,17 +15,17 @@ public class DiskBTreeNode<TKey, TData>
     NodeFactory = nodeFactory;
     Address = address;
   }
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Private Properties / Member Variables
   // /////////////////////////////////////////////////////////////////////////////////////////////
-  
+
   private BTreeNodeBlock _nodeBlock = default;
 
   private BTreeNodeBlock NodeBlock => _nodeBlock;
-  
+
   private bool IsLoaded { get; set; } = false;
-  
+
   private DiskArray<TKey> KeysArray { get; set; } = null;
 
   // DataArray holds an array of TData items when IsLeafNode is true,
@@ -35,23 +35,23 @@ public class DiskBTreeNode<TKey, TData>
   // ChildrenArray holds an array of addresses to child BTreeNodeBlocks if
   // IsLeafNode is false, or else is null if IsLeafNode is true
   private DiskArray<long> ChildrenArray { get; set; } = null;
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Properties
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
   public bool IsLeafNode => _nodeBlock.IsLeafNode == 1;
-  
+
   public short BTreeBlockTypeIndex => NodeFactory.BTreeBlockTypeIndex;
 
   public short NodeBlockTypeIndex => NodeFactory.NodeBlockTypeIndex;
-  
+
   public DiskBTreeNodeFactory<TKey, TData> NodeFactory { get; }
-  
+
   public long Address { get; }
 
   public bool IsFull => KeysArray.Count == NodeSize;
-  
+
   public DiskBlockManager DiskBlockManager => NodeFactory.DiskBlockManager;
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -73,17 +73,17 @@ public class DiskBTreeNode<TKey, TData>
       {
         ChildrenArray = DiskBlockManager.ArrayOfLongFactory.LoadExisting(_nodeBlock.DataOrChildrenAddress);
       }
-      
+
       IsLoaded = true;
-    } 
+    }
   }
 
   private void InsertNonFull(DiskBTreeNode<TKey, TData> node, TKey key, TData data)
   {
     EnsureLoaded();
-    
+
     int i = node.KeysArray.Count;
-    
+
     if (node.IsLeafNode)
     {
       while (i >= 1 && key.CompareTo(KeysArray[i - 1]) < 0)
@@ -116,13 +116,13 @@ public class DiskBTreeNode<TKey, TData>
         }
       }
       InsertNonFull(childNode, key, data);
-    }    
+    }
   }
 
   private void Split(DiskBTreeNode<TKey, TData> parentNode, int i)
   {
     EnsureLoaded();
-    
+
     DiskBTreeNode<TKey, TData> newNode = NodeFactory.AppendNew(this.IsLeafNode);
 
     for (int j = 0; j < NodeSize / 2; j++)
@@ -135,16 +135,16 @@ public class DiskBTreeNode<TKey, TData>
       for (int j = 0; j < NodeSize / 2; j++)
       {
         newNode.DataArray.AddItem(this.DataArray[j + NodeSize / 2]);
-      }      
+      }
     }
     else
     {
       for (int j = 0; j < NodeSize / 2; j++)
       {
         newNode.ChildrenArray.AddItem(this.ChildrenArray[j + NodeSize / 2]);
-      }       
+      }
     }
-    
+
     // Move the children of the parent node to make room for the new child
     for (int j = parentNode.KeysArray.Count; j >= i + 1; j--)
     {
@@ -156,7 +156,7 @@ public class DiskBTreeNode<TKey, TData>
 
     parentNode.KeysArray[i] = this.KeysArray[NodeSize / 2];
     parentNode.ChildrenArray[i + 1] = newNode.Address;
-    
+
     // TODO: Change the size of the arrays since we've moved half of them to the new node
     // this.KeysArray.Truncate(NodeSize / 2);
     // this.ChildrenArray.Truncate(NodeSize / 2);
@@ -169,7 +169,7 @@ public class DiskBTreeNode<TKey, TData>
   public DiskBTreeNode<TKey, TData> Insert(TKey key, TData data)
   {
     EnsureLoaded();
-    
+
     if (IsFull)
     {
       DiskBTreeNode<TKey, TData> newRootNode = NodeFactory.AppendNew(false);

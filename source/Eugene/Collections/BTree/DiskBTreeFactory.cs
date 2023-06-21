@@ -5,7 +5,7 @@ public class DiskBTreeFactory<TKey, TData>
   where TData : struct, IComparable
 {
   public const int NodeSize = 100;
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Constructors
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -27,11 +27,11 @@ public class DiskBTreeFactory<TKey, TData>
   private short KeyBlockTypeIndex { get; }
 
   private short DataBlockTypeIndex { get; }
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Properties
   // /////////////////////////////////////////////////////////////////////////////////////////////
-  
+
   public DiskBTreeManager Manager { get; }
 
   public DiskBlockManager DiskBlockManager => Manager.DiskBlockManager;
@@ -41,12 +41,12 @@ public class DiskBTreeFactory<TKey, TData>
   public short NodeBlockTypeIndex => Manager.NodeBlockTypeIndex;
 
   public DiskArrayFactory<TKey> KeyArrayFactory { get; }
-  
+
   public DiskArrayFactory<TData> DataArrayFactory { get; }
-  
+
   public DiskBTreeNodeFactory<TKey, TData> NodeFactory { get; }
 
-// /////////////////////////////////////////////////////////////////////////////////////////////
+  // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -54,7 +54,7 @@ public class DiskBTreeFactory<TKey, TData>
   {
     // Create the root BTree node
     DiskBTreeNode<TKey, TData> rootNode = NodeFactory.AppendNew(true);
-    
+
     // Create the BTree data block
     BTreeBlock btreeBlock = default;
     btreeBlock.KeyBlockTypeIndex = KeyBlockTypeIndex;

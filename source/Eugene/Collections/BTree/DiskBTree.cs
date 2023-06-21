@@ -1,6 +1,6 @@
 namespace Eugene.Collections;
 
-public class DiskBTree<TKey, TData> 
+public class DiskBTree<TKey, TData>
   where TKey : struct, IComparable
   where TData : struct, IComparable
 {
@@ -13,7 +13,7 @@ public class DiskBTree<TKey, TData>
     Factory = factory;
     Address = address;
   }
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Private Properties / Member Variables
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -45,7 +45,7 @@ public class DiskBTree<TKey, TData>
   public DiskArrayFactory<TKey> KeyArrayFactory => Factory.KeyArrayFactory;
 
   public DiskArrayFactory<TData> DataArrayFactory => Factory.DataArrayFactory;
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Private Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -57,9 +57,9 @@ public class DiskBTree<TKey, TData>
       DiskBlockManager.ReadDataBlock<BTreeBlock>(BTreeBlockTypeIndex, Address, out _btreeBlock);
       RootNode = NodeFactory.LoadExisting(_btreeBlock.RootNodeAddress);
       IsLoaded = true;
-    }    
+    }
   }
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////

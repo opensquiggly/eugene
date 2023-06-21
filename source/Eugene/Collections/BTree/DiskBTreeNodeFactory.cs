@@ -5,7 +5,7 @@ public class DiskBTreeNodeFactory<TKey, TData>
   where TData : struct, IComparable
 {
   public const int NodeSize = 100;
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Constructors
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -26,11 +26,11 @@ public class DiskBTreeNodeFactory<TKey, TData>
   private short KeyBlockTypeIndex { get; }
 
   private short DataBlockTypeIndex { get; }
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Properties
   // /////////////////////////////////////////////////////////////////////////////////////////////
-  
+
   public DiskBTreeFactory<TKey, TData> BTreeFactory { get; }
 
   public DiskBTreeManager Manager => BTreeFactory.Manager;
@@ -42,36 +42,36 @@ public class DiskBTreeNodeFactory<TKey, TData>
   public short NodeBlockTypeIndex => Manager.NodeBlockTypeIndex;
 
   public DiskArrayFactory<TKey> KeyArrayFactory { get; }
-  
+
   public DiskArrayFactory<TData> DataArrayFactory { get; }
 
-// /////////////////////////////////////////////////////////////////////////////////////////////
+  // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
   public DiskBTreeNode<TKey, TData> AppendNew(bool isLeafNode)
   {
     long dataOrChildrenAddress;
-    
+
     // Create the keys array
-    var keysArray = KeyArrayFactory.AppendNew(NodeSize);
+    DiskArray<TKey> keysArray = KeyArrayFactory.AppendNew(NodeSize);
 
     if (isLeafNode)
     {
       // For leaf nodes, create the array that holds the data
-      var dataArray = DataArrayFactory.AppendNew(NodeSize);
+      DiskArray<TData> dataArray = DataArrayFactory.AppendNew(NodeSize);
       dataOrChildrenAddress = dataArray.Address;
     }
     else
     {
       // For non-leaf nodes, create the array that holds the child nodes of the btree
-      var childrenArray = DiskBlockManager.ArrayOfLongFactory.AppendNew(NodeSize);
+      DiskArray<long> childrenArray = DiskBlockManager.ArrayOfLongFactory.AppendNew(NodeSize);
       dataOrChildrenAddress = childrenArray.Address;
     }
 
     // Create the node block
     BTreeNodeBlock nodeBlock = default;
-    nodeBlock.IsLeafNode = (short)(isLeafNode ? 1 : 0);
+    nodeBlock.IsLeafNode = (short) (isLeafNode ? 1 : 0);
     nodeBlock.KeysAddress = keysArray.Address;
     nodeBlock.DataOrChildrenAddress = dataOrChildrenAddress;
     nodeBlock.NextAddress = 0;
@@ -84,5 +84,5 @@ public class DiskBTreeNodeFactory<TKey, TData>
   public DiskBTreeNode<TKey, TData> LoadExisting(long address)
   {
     return new DiskBTreeNode<TKey, TData>(this, address);
-  }  
+  }
 }

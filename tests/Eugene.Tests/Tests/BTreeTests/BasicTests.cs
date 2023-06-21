@@ -13,8 +13,8 @@ public class BasicBTreeTests
     var dmb = new DiskBlockManager();
     dmb.CreateOrOpen("btreetest.dat");
 
-    var btreeFactory = dmb.BTreeManager.CreateFactory<int, int>(dmb.IntBlockType, dmb.IntBlockType);
-    var btree1 = btreeFactory.AppendNew();
+    DiskBTreeFactory<int, int> btreeFactory = dmb.BTreeManager.CreateFactory<int, int>(dmb.IntBlockType, dmb.IntBlockType);
+    DiskBTree<int, int> btree1 = btreeFactory.AppendNew();
     btree1.Insert(1, 123);
     btree1.Insert(2, 456);
     btree1.Insert(3, 789);
