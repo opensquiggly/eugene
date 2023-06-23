@@ -134,4 +134,29 @@ public class DiskArray<TData> where TData : struct, IComparable
     EnsureLoaded();
     return _arrayBlock.Count;
   }
+
+  public void Truncate(int count)
+  {
+    EnsureLoaded();
+    _arrayBlock.Count = count;
+    DiskBlockManager.WriteDataBlock(ArrayBlockTypeIndex, Address, ref _arrayBlock);
+  }
+
+  public void AddItemsTo(DiskArray<TData> dest, int startIndex, int endIndex = -1)
+  {
+    // Add items from current array to the destination array starting at
+    // startIndex up to BUT NOT INCLUDING end index.
+    //
+    // If end index is omitted, copy until the end of the source array
+
+    if (endIndex == -1)
+    {
+      endIndex = this.Count;
+    }
+    
+    for (int index = startIndex; index < endIndex; index++)
+    {
+      dest.AddItem(this[index]);
+    }    
+  }
 }
