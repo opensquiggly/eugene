@@ -1,5 +1,10 @@
 namespace Eugene.Collections;
 
+public static class DiskBTree
+{
+  public const int NodeSize = 100;
+}
+
 public class DiskBTree<TKey, TData>
   where TKey : struct, IComparable
   where TData : struct, IComparable
@@ -64,14 +69,46 @@ public class DiskBTree<TKey, TData>
   // Public Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
-  public void FindNode(TKey key)
+  public TData Find(TKey key)
   {
-    throw new NotImplementedException();
+    try
+    {
+      EnsureLoaded();
+      return RootNode.Find(key);
+    }
+    catch (Exception)
+    {
+      return default(TData);
+    }
   }
 
-  public void Insert(TKey key, TData data)
+  public bool Insert(TKey key, TData data)
+  {
+    try
+    {
+      EnsureLoaded();
+      DiskBTreeNode<TKey, TData> newRootNode = RootNode.Insert(key, data);
+      if (newRootNode.Address != RootNode.Address)
+      {
+        // Root node has changed
+        _btreeBlock.RootNodeAddress = newRootNode.Address;
+        DiskBlockManager.WriteDataBlock<BTreeBlock>(BTreeBlockTypeIndex, Address, ref _btreeBlock);
+        RootNode = newRootNode;
+      }
+
+      return true;
+    }
+    catch (Exception e)
+    {
+      Console.WriteLine(e);
+      return false;
+      // throw;
+    }
+  }
+
+  public void Print()
   {
     EnsureLoaded();
-    RootNode.Insert(key, data);
+    RootNode.Print();
   }
 }

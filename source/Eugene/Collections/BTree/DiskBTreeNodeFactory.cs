@@ -4,8 +4,6 @@ public class DiskBTreeNodeFactory<TKey, TData>
   where TKey : struct, IComparable
   where TData : struct, IComparable
 {
-  public const int NodeSize = 100;
-
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Constructors
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -45,6 +43,8 @@ public class DiskBTreeNodeFactory<TKey, TData>
 
   public DiskArrayFactory<TData> DataArrayFactory { get; }
 
+  public int NodeSize => DiskBTree.NodeSize;
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -65,7 +65,7 @@ public class DiskBTreeNodeFactory<TKey, TData>
     else
     {
       // For non-leaf nodes, create the array that holds the child nodes of the btree
-      DiskArray<long> childrenArray = DiskBlockManager.ArrayOfLongFactory.AppendNew(NodeSize);
+      DiskArray<long> childrenArray = DiskBlockManager.ArrayOfLongFactory.AppendNew(NodeSize + 1);
       dataOrChildrenAddress = childrenArray.Address;
     }
 
