@@ -128,20 +128,20 @@ public class DiskBTreeNode<TKey, TData>
 
     DiskBTreeNode<TKey, TData> newNode = NodeFactory.AppendNew(this.IsLeafNode);
     newNode.EnsureLoaded();
-    
+
     this.KeysArray.AddItemsTo(newNode.KeysArray, NodeSize / 2);
     this.KeysArray.Truncate(NodeSize / 2);
 
     if (!this.IsLeafNode)
     {
       this.ChildrenArray.AddItemsTo(newNode.ChildrenArray, NodeSize / 2);
-      this.ChildrenArray.Truncate(NodeSize / 2);  
+      this.ChildrenArray.Truncate(NodeSize / 2);
 
     }
     else
     {
       this.DataArray.AddItemsTo(newNode.DataArray, NodeSize / 2);
-      this.DataArray.Truncate(NodeSize / 2);    
+      this.DataArray.Truncate(NodeSize / 2);
     }
 
     // Move the children of the parent node to make room for the new child
@@ -159,7 +159,7 @@ public class DiskBTreeNode<TKey, TData>
     {
       parentNode.KeysArray[j + 1] = parentNode.KeysArray[j];
     }
-    
+
     // parentNode.KeysArray[i] = this.KeysArray[(NodeSize / 2) - 1];
     parentNode.KeysArray[i] = this.KeysArray[(NodeSize / 2) - 1];
   }
@@ -194,7 +194,7 @@ public class DiskBTreeNode<TKey, TData>
     childNode.EnsureLoaded();
     return childNode.Find(key);
   }
-  
+
   public DiskBTreeNode<TKey, TData> Insert(TKey key, TData data)
   {
     EnsureLoaded();
@@ -222,8 +222,8 @@ public class DiskBTreeNode<TKey, TData>
 
     while (queue.Count > 0)
     {
-      var nodeAddress = queue.Dequeue();
-      var node = NodeFactory.LoadExisting(nodeAddress);
+      long nodeAddress = queue.Dequeue();
+      DiskBTreeNode<TKey, TData> node = NodeFactory.LoadExisting(nodeAddress);
       node.EnsureLoaded();
 
       if (node.IsLeafNode)

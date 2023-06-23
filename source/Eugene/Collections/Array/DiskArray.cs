@@ -153,10 +153,10 @@ public class DiskArray<TData> where TData : struct, IComparable
     {
       endIndex = this.Count;
     }
-    
+
     for (int index = startIndex; index < endIndex; index++)
     {
       dest.AddItem(this[index]);
-    }    
+    }
   }
 }

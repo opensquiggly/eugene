@@ -42,7 +42,7 @@ public class BTreeTests
     // Clean Up
     File.Delete("testfile.dat");
   }
-  
+
   [TestMethod]
   public void T003_MultiInsertTest()
   {
@@ -51,21 +51,24 @@ public class BTreeTests
 
     DiskBTreeFactory<int, int> btreeFactory = dmb.BTreeManager.CreateFactory<int, int>(dmb.IntBlockType, dmb.IntBlockType);
     DiskBTree<int, int> btree1 = btreeFactory.AppendNew();
-  
+
     for (int x = 1; x <= 100000; x++)
     {
       btree1.Insert(x, x + 100000).Should().BeTrue($"Insert node should succeed x = {x}");
     }
 
+    dmb.Close();
+    dmb.CreateOrOpen("btreetest.dat");
+
     for (int x = 1; x < 100000; x++)
     {
       btree1.Find(x).Should().Be(x + 100000, $"Value should match what we put into the tree: x = {x}");
     }
-    
+
     dmb.Close();
     File.Exists("btreetest.dat").Should().BeTrue("File testfile.dat should exist after creating it");
 
     // Clean Up
     File.Delete("testfile.dat");
-  }  
+  }
 }
