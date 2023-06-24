@@ -58,26 +58,6 @@ public class DiskBTreeNode<TKey, TData>
   // Private Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
-  private void EnsureLoaded()
-  {
-    if (!IsLoaded)
-    {
-      DiskBlockManager.ReadDataBlock<BTreeNodeBlock>(NodeBlockTypeIndex, Address, out _nodeBlock);
-      KeysArray = NodeFactory.KeyArrayFactory.LoadExisting(_nodeBlock.KeysAddress);
-      if (_nodeBlock.IsLeafNode == 1)
-      {
-        DataArray = NodeFactory.DataArrayFactory.LoadExisting(_nodeBlock.DataOrChildrenAddress);
-        ChildrenArray = null;
-      }
-      else
-      {
-        ChildrenArray = DiskBlockManager.ArrayOfLongFactory.LoadExisting(_nodeBlock.DataOrChildrenAddress);
-      }
-
-      IsLoaded = true;
-    }
-  }
-
   private void InsertNonFull(DiskBTreeNode<TKey, TData> node, TKey key, TData data)
   {
     EnsureLoaded();
@@ -168,8 +148,30 @@ public class DiskBTreeNode<TKey, TData>
   // Public Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
+  public void EnsureLoaded()
+  {
+    if (!IsLoaded)
+    {
+      DiskBlockManager.ReadDataBlock<BTreeNodeBlock>(NodeBlockTypeIndex, Address, out _nodeBlock);
+      KeysArray = NodeFactory.KeyArrayFactory.LoadExisting(_nodeBlock.KeysAddress);
+      if (_nodeBlock.IsLeafNode == 1)
+      {
+        DataArray = NodeFactory.DataArrayFactory.LoadExisting(_nodeBlock.DataOrChildrenAddress);
+        ChildrenArray = null;
+      }
+      else
+      {
+        ChildrenArray = DiskBlockManager.ArrayOfLongFactory.LoadExisting(_nodeBlock.DataOrChildrenAddress);
+      }
+
+      IsLoaded = true;
+    }
+  }
+
   public TData Find(TKey key)
   {
+    EnsureLoaded();
+
     int i = 0;
     while (i < KeysArray.Count && key.CompareTo(KeysArray[i]) > 0)
     {
