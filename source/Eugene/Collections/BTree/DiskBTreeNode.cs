@@ -75,6 +75,7 @@ public class DiskBTreeNode<TKey, TData>
         // DiskArray class
         node.KeysArray[i + 1] = node.KeysArray[i];
         node.DataArray[i + 1] = node.DataArray[i];
+        i--;
       }
       node.KeysArray[i + 1] = key;
       node.DataArray[i + 1] = data;
@@ -116,7 +117,6 @@ public class DiskBTreeNode<TKey, TData>
     {
       this.ChildrenArray.AddItemsTo(newNode.ChildrenArray, NodeSize / 2);
       this.ChildrenArray.Truncate(NodeSize / 2);
-
     }
     else
     {
