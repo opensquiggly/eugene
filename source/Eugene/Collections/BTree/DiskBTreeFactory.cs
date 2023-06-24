@@ -66,6 +66,6 @@ public class DiskBTreeFactory<TKey, TData>
 
   public DiskBTree<TKey, TData> LoadExisting(long address)
   {
-    return null;
+    return new DiskBTree<TKey, TData>(this, address);
   }
 }
