@@ -61,6 +61,7 @@ public class DiskBTree<TKey, TData>
     {
       DiskBlockManager.ReadDataBlock<BTreeBlock>(BTreeBlockTypeIndex, Address, out _btreeBlock);
       RootNode = NodeFactory.LoadExisting(_btreeBlock.RootNodeAddress);
+      RootNode.EnsureLoaded();
       IsLoaded = true;
     }
   }
