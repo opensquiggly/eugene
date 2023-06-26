@@ -2,7 +2,7 @@ namespace Eugene.Collections;
 
 public class DiskBTreeFactory<TKey, TData>
   where TKey : struct, IComparable
-  where TData : struct, IComparable
+  where TData : struct
 {
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Constructors
@@ -13,7 +13,7 @@ public class DiskBTreeFactory<TKey, TData>
     Manager = manager;
     KeyBlockTypeIndex = keyBlockTypeIndex;
     DataBlockTypeIndex = dataBlockTypeIndex;
-    KeyArrayFactory = Manager.DiskBlockManager.ArrayManager.CreateFactory<TKey>(KeyBlockTypeIndex);
+    KeyArrayFactory = Manager.DiskBlockManager.SortedArrayManager.CreateFactory<TKey>(KeyBlockTypeIndex);
     DataArrayFactory = Manager.DiskBlockManager.ArrayManager.CreateFactory<TData>(DataBlockTypeIndex);
     NodeFactory = new DiskBTreeNodeFactory<TKey, TData>(this, keyBlockTypeIndex, dataBlockTypeIndex);
   }
@@ -38,7 +38,7 @@ public class DiskBTreeFactory<TKey, TData>
 
   public short NodeBlockTypeIndex => Manager.NodeBlockTypeIndex;
 
-  public DiskArrayFactory<TKey> KeyArrayFactory { get; }
+  public DiskSortedArrayFactory<TKey> KeyArrayFactory { get; }
 
   public DiskArrayFactory<TData> DataArrayFactory { get; }
 
@@ -48,20 +48,27 @@ public class DiskBTreeFactory<TKey, TData>
   // Public Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
-  public DiskBTree<TKey, TData> AppendNew()
+  public DiskBTree<TKey, TData> AppendNew(short nodeSize)
   {
+    // Create a placeholder for the BTree so we can pass the tree to
+    // NodeFactory.AppendNew(). We do some fixups later.
+    var result = new DiskBTree<TKey, TData>(this, 0, nodeSize);
+
     // Create the root BTree node
-    DiskBTreeNode<TKey, TData> rootNode = NodeFactory.AppendNew(true);
+    DiskBTreeNode<TKey, TData> rootNode = NodeFactory.AppendNew(result, true);
 
     // Create the BTree data block
     BTreeBlock btreeBlock = default;
     btreeBlock.KeyBlockTypeIndex = KeyBlockTypeIndex;
     btreeBlock.DataBlockTypeIndex = DataBlockTypeIndex;
     btreeBlock.Count = 0;
+    btreeBlock.NodeSize = nodeSize;
     btreeBlock.RootNodeAddress = rootNode.Address;
     long btreeAddress = DiskBlockManager.AppendDataBlock<BTreeBlock>(BTreeBlockTypeIndex, ref btreeBlock);
 
-    return new DiskBTree<TKey, TData>(this, btreeAddress);
+    result.ReplaceAddress(btreeAddress);
+
+    return result;
   }
 
   public DiskBTree<TKey, TData> LoadExisting(long address)
