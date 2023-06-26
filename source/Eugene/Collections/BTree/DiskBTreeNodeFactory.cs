@@ -2,7 +2,7 @@ namespace Eugene.Collections;
 
 public class DiskBTreeNodeFactory<TKey, TData>
   where TKey : struct, IComparable
-  where TData : struct, IComparable
+  where TData : struct
 {
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Constructors
@@ -13,7 +13,7 @@ public class DiskBTreeNodeFactory<TKey, TData>
     BTreeFactory = btreeFactory;
     KeyBlockTypeIndex = keyBlockTypeIndex;
     DataBlockTypeIndex = dataBlockTypeIndex;
-    KeyArrayFactory = Manager.DiskBlockManager.ArrayManager.CreateFactory<TKey>(KeyBlockTypeIndex);
+    KeyArrayFactory = Manager.DiskBlockManager.SortedArrayManager.CreateFactory<TKey>(KeyBlockTypeIndex);
     DataArrayFactory = Manager.DiskBlockManager.ArrayManager.CreateFactory<TData>(DataBlockTypeIndex);
   }
 
@@ -39,33 +39,31 @@ public class DiskBTreeNodeFactory<TKey, TData>
 
   public short NodeBlockTypeIndex => Manager.NodeBlockTypeIndex;
 
-  public DiskArrayFactory<TKey> KeyArrayFactory { get; }
+  public DiskSortedArrayFactory<TKey> KeyArrayFactory { get; }
 
   public DiskArrayFactory<TData> DataArrayFactory { get; }
-
-  public int NodeSize => DiskBTree.NodeSize;
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
-  public DiskBTreeNode<TKey, TData> AppendNew(bool isLeafNode)
+  public DiskBTreeNode<TKey, TData> AppendNew(DiskBTree<TKey, TData> btree, bool isLeafNode)
   {
     long dataOrChildrenAddress;
 
     // Create the keys array
-    DiskArray<TKey> keysArray = KeyArrayFactory.AppendNew(NodeSize);
+    DiskArray<TKey> keysArray = KeyArrayFactory.AppendNew(btree.NodeSize);
 
     if (isLeafNode)
     {
       // For leaf nodes, create the array that holds the data
-      DiskArray<TData> dataArray = DataArrayFactory.AppendNew(NodeSize);
+      DiskArray<TData> dataArray = DataArrayFactory.AppendNew(btree.NodeSize);
       dataOrChildrenAddress = dataArray.Address;
     }
     else
     {
       // For non-leaf nodes, create the array that holds the child nodes of the btree
-      DiskArray<long> childrenArray = DiskBlockManager.ArrayOfLongFactory.AppendNew(NodeSize + 1);
+      DiskArray<long> childrenArray = DiskBlockManager.ArrayOfLongFactory.AppendNew(btree.NodeSize + 1);
       dataOrChildrenAddress = childrenArray.Address;
     }
 
@@ -78,11 +76,11 @@ public class DiskBTreeNodeFactory<TKey, TData>
     nodeBlock.PreviousAddress = 0;
     long nodeAddress = DiskBlockManager.AppendDataBlock<BTreeNodeBlock>(NodeBlockTypeIndex, ref nodeBlock);
 
-    return new DiskBTreeNode<TKey, TData>(this, nodeAddress);
+    return new DiskBTreeNode<TKey, TData>(btree, this, nodeAddress);
   }
 
-  public DiskBTreeNode<TKey, TData> LoadExisting(long address)
+  public DiskBTreeNode<TKey, TData> LoadExisting(DiskBTree<TKey, TData> btree, long address)
   {
-    return new DiskBTreeNode<TKey, TData>(this, address);
+    return new DiskBTreeNode<TKey, TData>(btree, this, address);
   }
 }

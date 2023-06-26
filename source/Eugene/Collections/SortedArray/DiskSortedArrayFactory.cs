@@ -1,34 +1,21 @@
 namespace Eugene.Collections;
 
-public class DiskArrayFactory<TData> where TData : struct
+public class DiskSortedArrayFactory<TData> : DiskArrayFactory<TData>
+  where TData : struct, IComparable
 {
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Constructors
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
-  public DiskArrayFactory(DiskArrayManager manager, short dataBlockTypeIndex)
+  public DiskSortedArrayFactory(DiskSortedArrayManager manager, short dataBlockTypeIndex) : base(manager, dataBlockTypeIndex)
   {
-    Manager = manager;
-    DataBlockTypeIndex = dataBlockTypeIndex;
   }
-
-  // /////////////////////////////////////////////////////////////////////////////////////////////
-  // Public Properties
-  // /////////////////////////////////////////////////////////////////////////////////////////////
-
-  public int ArrayBlockTypeIndex => Manager.ArrayBlockTypeIndex;
-
-  public short DataBlockTypeIndex { get; }
-
-  public IDiskBlockManager DiskBlockManager => Manager.DiskBlockManager;
-
-  public DiskArrayManager Manager { get; }
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
-  public DiskArray<TData> AppendNew(int maxItems)
+  public new DiskSortedArray<TData> AppendNew(int maxItems)
   {
     long dataAddress = DiskBlockManager.AppendDataBlockArray<TData>(DataBlockTypeIndex, maxItems);
     ArrayBlock block = default;
@@ -39,16 +26,16 @@ public class DiskArrayFactory<TData> where TData : struct
     block.DataAddress = dataAddress;
 
     long address = DiskBlockManager.AppendDataBlock<ArrayBlock>(ArrayBlockTypeIndex, ref block);
-    return new DiskArray<TData>(this, address);
+    return new DiskSortedArray<TData>(this, address);
   }
 
-  public void Delete()
+  public new void Delete()
   {
     throw new NotImplementedException();
   }
 
-  public DiskArray<TData> LoadExisting(long address)
+  public new DiskSortedArray<TData> LoadExisting(long address)
   {
-    return new DiskArray<TData>(this, address);
+    return new DiskSortedArray<TData>(this, address);
   }
 }

@@ -1,6 +1,6 @@
 namespace Eugene.Collections;
 
-public class DiskArray<TData> where TData : struct, IComparable
+public class DiskArray<TData> where TData : struct
 {
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Constructors
@@ -13,14 +13,12 @@ public class DiskArray<TData> where TData : struct, IComparable
   }
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
-  // Private Properties / Member Variables
+  // Protected Properties / Member Variables
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
-  private ArrayBlock _arrayBlock = default;
+  protected ArrayBlock ArrayBlock = default;
 
-  private bool IsLoaded { get; set; } = false;
-
-  private ArrayBlock ArrayBlock => _arrayBlock;
+  protected bool IsLoaded { get; set; } = false;
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Properties
@@ -36,15 +34,24 @@ public class DiskArray<TData> where TData : struct, IComparable
 
   public int Count => GetCount();
 
+  public bool IsFull
+  {
+    get
+    {
+      EnsureLoaded();
+      return this.Count >= ArrayBlock.MaxItems;
+    }
+  }
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
-  // Private Methods
+  // Protected Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
-  private void EnsureLoaded()
+  protected void EnsureLoaded()
   {
     if (!IsLoaded)
     {
-      DiskBlockManager.ReadDataBlock<ArrayBlock>(ArrayBlockTypeIndex, Address, out _arrayBlock);
+      DiskBlockManager.ReadDataBlock<ArrayBlock>(ArrayBlockTypeIndex, Address, out ArrayBlock);
       IsLoaded = true;
     }
   }
@@ -67,8 +74,33 @@ public class DiskArray<TData> where TData : struct, IComparable
   // Public Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
-  public void AddItem(TData item)
+  public virtual int AddItem(TData item)
   {
+    // Note: DiskSortedArray overrides this method and adds the item in sorted order
+    return AppendItem(item, true);
+  }
+  
+  public void AddItemsTo(DiskArray<TData> dest, int startIndex, int endIndex = -1)
+  {
+    // Add items from current array to the destination array starting at
+    // startIndex up to BUT NOT INCLUDING end index.
+    //
+    // If end index is omitted, copy until the end of the source array
+
+    if (endIndex == -1)
+    {
+      endIndex = this.Count;
+    }
+
+    for (int index = startIndex; index < endIndex; index++)
+    {
+      dest.AddItem(this[index]);
+    }
+  }
+  
+  public virtual int AppendItem(TData item, bool allowUnsorted = true)
+  {
+    // Note: DiskSortedArray overrides this method and adds the item in sorted order
     EnsureLoaded();
 
     if (ArrayBlock.Count == ArrayBlock.MaxItems)
@@ -82,19 +114,20 @@ public class DiskArray<TData> where TData : struct, IComparable
       ref item
     );
 
-    _arrayBlock.Count++;
-    DiskBlockManager.WriteDataBlock(ArrayBlockTypeIndex, Address, ref _arrayBlock);
-
+    ArrayBlock.Count++;
+    DiskBlockManager.WriteDataBlock(ArrayBlockTypeIndex, Address, ref ArrayBlock);
     DiskBlockManager.Flush();
-  }
 
+    return ArrayBlock.Count - 1;
+  }
+  
   public void GetAt(int index, out TData item)
   {
     EnsureLoaded();
 
     if (index < 0 || index > ArrayBlock.Count - 1)
     {
-      throw new Exception("DiskArray: Requested index is outside the bounds of the array");
+      throw new Exception($"DiskArray: Requested index is outside the bounds of the array, index = {index}");
     }
 
     DiskBlockManager.ReadDataBlock(
@@ -103,7 +136,38 @@ public class DiskArray<TData> where TData : struct, IComparable
       out item
     );
   }
+  
+  public int GetCount()
+  {
+    EnsureLoaded();
+    return ArrayBlock.Count;
+  }
+  
+  public void Grow(int growBy)
+  {
+    EnsureLoaded();
 
+    if (ArrayBlock.Count + growBy > ArrayBlock.MaxItems)
+    {
+      throw new IndexOutOfRangeException(
+        $"Growing the array would exceed the max items allowed. " +
+          $"Count = {ArrayBlock.Count}, " +
+          $"MaxItems = {ArrayBlock.MaxItems}"
+      );
+    }
+
+    ArrayBlock.Count += growBy;
+    DiskBlockManager.WriteDataBlock(ArrayBlockTypeIndex, Address, ref ArrayBlock);
+  }
+  
+  public void InsertAt(int index, TData item)
+  {
+    EnsureLoaded();
+    Grow(1);
+    ShiftRight(index, 1);
+    this[index] = item;
+  }
+  
   public void SetAt(int index, TData item)
   {
     EnsureLoaded();
@@ -124,39 +188,31 @@ public class DiskArray<TData> where TData : struct, IComparable
     if (index == ArrayBlock.Count)
     {
       // Client added a new item to end of list. Increment the Count;
-      _arrayBlock.Count++;
-      DiskBlockManager.WriteDataBlock(ArrayBlockTypeIndex, Address, ref _arrayBlock);
+      ArrayBlock.Count++;
+      DiskBlockManager.WriteDataBlock(ArrayBlockTypeIndex, Address, ref ArrayBlock);
     }
   }
 
-  public int GetCount()
+  public void ShiftRight(int startIndex, int spaces = 1)
   {
     EnsureLoaded();
-    return _arrayBlock.Count;
+    
+    // Shift the elements to the right the specific number of spaces,
+    // starting at index. The index is left unmodified.
+    // Need a faster way to do this, but this should work for now
+    for (int currentIndex = Count - 1; currentIndex >= startIndex + spaces; currentIndex--)
+    {
+      this[currentIndex] = this[currentIndex - spaces];
+    }
   }
 
   public void Truncate(int count)
   {
     EnsureLoaded();
-    _arrayBlock.Count = count;
-    DiskBlockManager.WriteDataBlock(ArrayBlockTypeIndex, Address, ref _arrayBlock);
-  }
-
-  public void AddItemsTo(DiskArray<TData> dest, int startIndex, int endIndex = -1)
-  {
-    // Add items from current array to the destination array starting at
-    // startIndex up to BUT NOT INCLUDING end index.
-    //
-    // If end index is omitted, copy until the end of the source array
-
-    if (endIndex == -1)
+    if (count < ArrayBlock.Count)
     {
-      endIndex = this.Count;
-    }
-
-    for (int index = startIndex; index < endIndex; index++)
-    {
-      dest.AddItem(this[index]);
+      ArrayBlock.Count = count;
+      DiskBlockManager.WriteDataBlock(ArrayBlockTypeIndex, Address, ref ArrayBlock);
     }
   }
 }
