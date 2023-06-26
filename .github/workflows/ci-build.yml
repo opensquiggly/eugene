@@ -48,6 +48,8 @@ jobs:
           cd tests/Eugene.Tests/
           dotnet tool restore
           cd /
+          pwd
+          ls -lga
           dotnet restore
           dotnet test --configuration Debug
 
