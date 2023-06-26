@@ -45,7 +45,8 @@ jobs:
 
       - name: run Eugene.Tests
         run: |
-          cd tests/Eugene.Tests/
+          # cd tests/Eugene.Tests/
+          cd /
           dotnet tool restore
           dotnet restore
           dotnet test --configuration Debug
