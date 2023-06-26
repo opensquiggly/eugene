@@ -79,7 +79,7 @@ public class DiskArray<TData> where TData : struct
     // Note: DiskSortedArray overrides this method and adds the item in sorted order
     return AppendItem(item, true);
   }
-  
+
   public void AddItemsTo(DiskArray<TData> dest, int startIndex, int endIndex = -1)
   {
     // Add items from current array to the destination array starting at
@@ -97,7 +97,7 @@ public class DiskArray<TData> where TData : struct
       dest.AddItem(this[index]);
     }
   }
-  
+
   public virtual int AppendItem(TData item, bool allowUnsorted = true)
   {
     // Note: DiskSortedArray overrides this method and adds the item in sorted order
@@ -120,7 +120,7 @@ public class DiskArray<TData> where TData : struct
 
     return ArrayBlock.Count - 1;
   }
-  
+
   public void GetAt(int index, out TData item)
   {
     EnsureLoaded();
@@ -136,13 +136,13 @@ public class DiskArray<TData> where TData : struct
       out item
     );
   }
-  
+
   public int GetCount()
   {
     EnsureLoaded();
     return ArrayBlock.Count;
   }
-  
+
   public void Grow(int growBy)
   {
     EnsureLoaded();
@@ -159,7 +159,7 @@ public class DiskArray<TData> where TData : struct
     ArrayBlock.Count += growBy;
     DiskBlockManager.WriteDataBlock(ArrayBlockTypeIndex, Address, ref ArrayBlock);
   }
-  
+
   public void InsertAt(int index, TData item)
   {
     EnsureLoaded();
@@ -167,7 +167,7 @@ public class DiskArray<TData> where TData : struct
     ShiftRight(index, 1);
     this[index] = item;
   }
-  
+
   public void SetAt(int index, TData item)
   {
     EnsureLoaded();
@@ -196,7 +196,7 @@ public class DiskArray<TData> where TData : struct
   public void ShiftRight(int startIndex, int spaces = 1)
   {
     EnsureLoaded();
-    
+
     // Shift the elements to the right the specific number of spaces,
     // starting at index. The index is left unmodified.
     // Need a faster way to do this, but this should work for now

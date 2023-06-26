@@ -38,7 +38,7 @@ public class DiskBTreeNode<TKey, TData>
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Properties
   // /////////////////////////////////////////////////////////////////////////////////////////////
-  
+
   public DiskBTree<TKey, TData> BTree { get; }
 
   public bool IsLeafNode => _nodeBlock.IsLeafNode == 1;
@@ -62,7 +62,7 @@ public class DiskBTreeNode<TKey, TData>
   private void InsertNonFull(TKey key, TData data)
   {
     int index = 0;
-    
+
     try
     {
       this.EnsureLoaded();
@@ -82,11 +82,11 @@ public class DiskBTreeNode<TKey, TData>
         long childAddress = this.ChildrenArray[index];
         DiskBTreeNode<TKey, TData> childNode = NodeFactory.LoadExisting(this.BTree, childAddress);
         childNode.EnsureLoaded();
-        
+
         if (childNode.KeysArray.IsFull)
         {
           childNode.Split(this, index);
-          
+
           // Since we just split the child node, we need to figure out which path
           // to go down
           index = this.KeysArray.FindFirstGreaterThan(key);
@@ -105,7 +105,7 @@ public class DiskBTreeNode<TKey, TData>
     catch (Exception ex)
     {
       throw new Exception(
-        $"DiskBTreeNode.InsertNonFull Failed. " + 
+        $"DiskBTreeNode.InsertNonFull Failed. " +
         $"IsLeafNode = {this.IsLeafNode}, index = {index}, key = {key}, data = {data}", ex
       );
     }
@@ -137,14 +137,14 @@ public class DiskBTreeNode<TKey, TData>
         this.DataArray.AddItemsTo(newNode.DataArray, medianIndex);
         this.DataArray.Truncate(NodeSize / 2);
       }
-      
+
       parentNode.KeysArray.Grow(1);
       parentNode.KeysArray.ShiftRight(i);
       parentNode.KeysArray[i] = medianKey;
-    
+
       parentNode.ChildrenArray.Grow(1);
       parentNode.ChildrenArray.ShiftRight(i + 1);
-      parentNode.ChildrenArray[i + 1] = newNode.Address;  
+      parentNode.ChildrenArray[i + 1] = newNode.Address;
     }
     catch (Exception ex)
     {
@@ -188,7 +188,7 @@ public class DiskBTreeNode<TKey, TData>
       {
         return DataArray[index];
       }
-      
+
       throw new KeyNotFoundException($"The key {key} was not found in the BTree");
     }
 
@@ -244,10 +244,10 @@ public class DiskBTreeNode<TKey, TData>
 
       // if (node.IsLeafNode)
       // {
-        // Console.WriteLine($"Level = {level}");
-        Console.WriteLine($"---------------");
-        Console.WriteLine($"Address = {node.Address}");
-        Console.WriteLine($"IsLeafNode = {node.IsLeafNode}");
+      // Console.WriteLine($"Level = {level}");
+      Console.WriteLine($"---------------");
+      Console.WriteLine($"Address = {node.Address}");
+      Console.WriteLine($"IsLeafNode = {node.IsLeafNode}");
       // }
 
       if (node.IsLeafNode)
@@ -269,7 +269,7 @@ public class DiskBTreeNode<TKey, TData>
         {
           Console.Write($"{node.KeysArray[x]}/{node.ChildrenArray[x]} ");
         }
-        
+
         Console.WriteLine($" Overflow={node.ChildrenArray[^1]}");
 
         for (int x = 0; x < node.ChildrenArray.Count; x++)
