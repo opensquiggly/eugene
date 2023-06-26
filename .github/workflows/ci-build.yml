@@ -48,6 +48,6 @@ jobs:
           cd tests/Eugene.Tests/
           dotnet tool restore
           dotnet restore
-          dotnet fixie --configuration Debug
+          dotnet test --configuration Debug
 
       - run: echo "🍏 This job's status is ${{ job.status }}."
