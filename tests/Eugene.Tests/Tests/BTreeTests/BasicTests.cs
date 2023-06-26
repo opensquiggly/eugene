@@ -5,12 +5,16 @@ using Eugene.Collections;
 using FluentAssertions;
 using TimeWarp.Fixie;
 
-[TestTag(TestTags.Unit)]
+[TestTag(TestTags.Fast)]
 public class BasicBTreeTests
 {
   public static void T001_BasicTests()
   {
     var dmb = new DiskBlockManager();
+    if (File.Exists("btreetest.dat"))
+    {
+      File.Delete("btreetest.dat");
+    }
     dmb.CreateOrOpen("btreetest.dat");
 
     DiskBTreeFactory<int, int> btreeFactory = dmb.BTreeManager.CreateFactory<int, int>(dmb.IntBlockType, dmb.IntBlockType);
