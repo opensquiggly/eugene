@@ -49,13 +49,13 @@ public class BTreeTests
   public void T003_LargeSortedInsertTest()
   {
     string filename = "btreetest.dat";
-    
+
     var dmb = new DiskBlockManager();
     if (File.Exists(filename))
     {
       File.Delete(filename);
     }
-    
+
     dmb.CreateOrOpen(filename);
 
     DiskBTreeFactory<int, int> btreeFactory = dmb.BTreeManager.CreateFactory<int, int>(dmb.IntBlockType, dmb.IntBlockType);
@@ -100,25 +100,25 @@ public class BTreeTests
     btree1.Insert(9, 109);
     btree1.Insert(10, 110);
     btree1.Print();
-    
+
     // btree1.Insert(5, 105);
     //
     // Console.WriteLine("After inserting 5 nodes");
     // btree1.Print();
     //
-    
+
     btree1.Find(1).Should().Be(101, "Value should match");
     btree1.Find(2).Should().Be(102, "Value should match");
     btree1.Find(3).Should().Be(103, "Value should match");
     btree1.Find(4).Should().Be(104, "Value should match");
     btree1.Find(5).Should().Be(105, "Value should match");
     btree1.Find(6).Should().Be(106, "Value should match");
-    
+
     //
     // Console.WriteLine();
     // Console.WriteLine("After inserting 5th node");
     // btree1.Print();
-    
+
     dmb.Close();
     File.Exists("btreetest.dat").Should().BeTrue("File testfile.dat should exist after creating it");
 
@@ -161,7 +161,7 @@ public class BTreeTests
     btree1.Find(5).Should().Be(789, "Value should match what was inserted");
     btree1.Find(10).Should().Be(456, "Value should match what was inserted");
     btree1.Find(1).Should().Be(123, "Value should match what was inserted");
-    
+
     dmb.Close();
     File.Exists("btreetest.dat").Should().BeTrue("File testfile.dat should exist after creating it");
 

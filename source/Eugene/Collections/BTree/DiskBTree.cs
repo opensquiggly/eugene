@@ -12,7 +12,7 @@ public class DiskBTree<TKey, TData>
   {
     Factory = factory;
     Address = address;
-    
+
     // The assumed node size to use until the BTree has been loaded from disk
     // and the node size is read from the associated BTreeBlock
     TempNodeSize = tempNodeSize;
@@ -31,7 +31,7 @@ public class DiskBTree<TKey, TData>
   private DiskBlockManager DiskBlockManager => Factory.DiskBlockManager;
 
   private DiskBTreeNodeFactory<TKey, TData> NodeFactory => Factory.NodeFactory;
-  
+
   private short TempNodeSize { get; }
 
   // /////////////////////////////////////////////////////////////////////////////////////////////

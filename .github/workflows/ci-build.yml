@@ -36,7 +36,7 @@ jobs:
       - name: Format check
         run: |
           dotnet tool restore
-          # dotnet format --verify-no-changes ./Eugene.sln
+          dotnet format --verify-no-changes ./Eugene.sln
 
       - name: Build Eugene
         run: |

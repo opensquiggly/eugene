@@ -82,7 +82,7 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
     ArrayOfLongFactory = ArrayManager.CreateFactory<long>(LongBlockType);
     SortedArrayOfShortFactory = SortedArrayManager.CreateFactory<short>(ShortBlockType);
     SortedArrayOfIntFactory = SortedArrayManager.CreateFactory<int>(IntBlockType);
-    SortedArrayOfLongFactory = SortedArrayManager.CreateFactory<long>(LongBlockType);    
+    SortedArrayOfLongFactory = SortedArrayManager.CreateFactory<long>(LongBlockType);
     FixedStringFactory = FixedStringManager.CreateFactory(CharBlockType);
     ImmutableStringFactory = ImmutableStringManager.CreateFactory(CharBlockType);
   }
@@ -130,17 +130,17 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
   public DiskArrayFactory<int> ArrayOfIntFactory { get; set; }
 
   public DiskArrayFactory<long> ArrayOfLongFactory { get; set; }
-  
+
   public DiskSortedArrayFactory<short> SortedArrayOfShortFactory { get; set; }
 
   public DiskSortedArrayFactory<int> SortedArrayOfIntFactory { get; set; }
 
-  public DiskSortedArrayFactory<long> SortedArrayOfLongFactory { get; set; }  
+  public DiskSortedArrayFactory<long> SortedArrayOfLongFactory { get; set; }
 
   public DiskLinkedListManager LinkedListManager { get; set; }
 
   public DiskArrayManager ArrayManager { get; set; }
-  
+
   public DiskSortedArrayManager SortedArrayManager { get; set; }
 
   public DiskBTreeManager BTreeManager { get; set; }

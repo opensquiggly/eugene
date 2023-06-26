@@ -9,15 +9,15 @@ public class DiskSortedArray<TData> : DiskArray<TData> where TData : struct, ICo
   public DiskSortedArray(DiskSortedArrayFactory<TData> factory, long address) : base(factory, address)
   {
   }
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
-  
+
   public override int AddItem(TData item)
   {
     EnsureLoaded();
-    
+
     int index = FindLastLessThanOrEqual(item) + 1;
     Grow(1);
     ShiftRight(index);
@@ -30,11 +30,11 @@ public class DiskSortedArray<TData> : DiskArray<TData> where TData : struct, ICo
   {
     // Find the last element that is less than the 'data' value
     EnsureLoaded();
-    
+
     int start = 0;
     int end = this.Count - 1;
     int result = -1;
-    
+
     while (start <= end)
     {
       int mid = (start + end) / 2;
@@ -60,7 +60,7 @@ public class DiskSortedArray<TData> : DiskArray<TData> where TData : struct, ICo
     int start = 0;
     int end = this.Count - 1;
     int result = -1;
-    
+
     while (start <= end)
     {
       int mid = (start + end) / 2;
@@ -86,7 +86,7 @@ public class DiskSortedArray<TData> : DiskArray<TData> where TData : struct, ICo
     int start = 0;
     int end = this.Count - 1;
     int result = -1;
-    
+
     while (start <= end)
     {
       int mid = (start + end) / 2;
@@ -107,7 +107,7 @@ public class DiskSortedArray<TData> : DiskArray<TData> where TData : struct, ICo
 
     return result;
   }
-  
+
   public int FindLastEqual(TData data)
   {
     // Find the last element that is equal to the the 'data' value
@@ -116,7 +116,7 @@ public class DiskSortedArray<TData> : DiskArray<TData> where TData : struct, ICo
     int start = 0;
     int end = this.Count - 1;
     int result = -1;
-    
+
     while (start <= end)
     {
       int mid = (start + end) / 2;
@@ -146,7 +146,7 @@ public class DiskSortedArray<TData> : DiskArray<TData> where TData : struct, ICo
     int start = 0;
     int end = this.Count - 1;
     int result = -1;
-    
+
     while (start <= end)
     {
       int mid = (start + end) / 2;
@@ -172,7 +172,7 @@ public class DiskSortedArray<TData> : DiskArray<TData> where TData : struct, ICo
     int start = 0;
     int end = this.Count - 1;
     int result = -1;
-    
+
     while (start <= end)
     {
       int mid = (start + end) / 2;
