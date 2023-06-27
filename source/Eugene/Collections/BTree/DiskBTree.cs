@@ -71,6 +71,12 @@ public class DiskBTree<TKey, TData>
   // Public Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
+  public bool TryFind(TKey key, out TData data)
+  {
+    EnsureLoaded();
+    return RootNode.TryFind(key, out data);
+  }
+
   public TData Find(TKey key)
   {
     try

@@ -55,6 +55,10 @@ public class DiskBTreeNode<TKey, TData>
 
   public int NodeSize => BTree.NodeSize;
 
+  public long NextAddress => _nodeBlock.NextAddress;
+
+  public long PreviousAddress => _nodeBlock.PreviousAddress;
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Private Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -117,8 +121,33 @@ public class DiskBTreeNode<TKey, TData>
     {
       EnsureLoaded();
 
+      // Create the new sibling node for the split
       DiskBTreeNode<TKey, TData> newNode = NodeFactory.AppendNew(this.BTree, this.IsLeafNode);
       newNode.EnsureLoaded();
+
+      // Link the leaf nodes together
+      if (this.IsLeafNode)
+      {
+        long oldNextAddress = this.NextAddress;
+
+        // Set this node's NextAddress to the new node
+        this._nodeBlock.NextAddress = newNode.Address;
+        DiskBlockManager.WriteDataBlock(NodeBlockTypeIndex, this.Address, ref this._nodeBlock);
+
+        // Set the new node's NextAddress & PreviousAddress
+        newNode._nodeBlock.PreviousAddress = this.Address;
+        newNode._nodeBlock.NextAddress = oldNextAddress;
+        DiskBlockManager.WriteDataBlock(NodeBlockTypeIndex, newNode.Address, ref newNode._nodeBlock);
+
+        // Update the old next node's PreviousAddress to the new node
+        if (oldNextAddress != 0)
+        {
+          DiskBTreeNode<TKey, TData> nextNode = null;
+          nextNode = NodeFactory.LoadExisting(BTree, this.NextAddress);
+          nextNode._nodeBlock.PreviousAddress = newNode.Address;
+          DiskBlockManager.WriteDataBlock(NodeBlockTypeIndex, nextNode.Address, ref nextNode._nodeBlock);
+        }
+      }
 
       int medianIndex = NodeSize / 2;
       TKey medianKey = this.KeysArray[medianIndex];
@@ -202,6 +231,36 @@ public class DiskBTreeNode<TKey, TData>
     DiskBTreeNode<TKey, TData> childNode = NodeFactory.LoadExisting(BTree, ChildrenArray[index]);
     childNode.EnsureLoaded();
     return childNode.Find(key);
+  }
+
+  public bool TryFind(TKey key, out TData data)
+  {
+    int index;
+    EnsureLoaded();
+
+    if (IsLeafNode)
+    {
+      index = this.KeysArray.FindFirstEqual(key);
+      if (index >= 0)
+      {
+        data = DataArray[index];
+        return true;
+      }
+
+      data = default;
+      return false;
+    }
+
+    index = this.KeysArray.FindFirstGreaterThan(key);
+    if (index == -1)
+    {
+      index = ChildrenArray.Count - 1;
+    }
+
+    // Recurse into child node to find the leaf node
+    DiskBTreeNode<TKey, TData> childNode = NodeFactory.LoadExisting(BTree, ChildrenArray[index]);
+    childNode.EnsureLoaded();
+    return childNode.TryFind(key, out data);
   }
 
   public DiskBTreeNode<TKey, TData> Insert(TKey key, TData data)
