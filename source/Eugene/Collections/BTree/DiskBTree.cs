@@ -90,6 +90,12 @@ public class DiskBTree<TKey, TData>
     }
   }
 
+  public DiskBTreeNode<TKey, TData>.Position GetFirst()
+  {
+    EnsureLoaded();
+    return RootNode.GetFirst();
+  }
+
   public bool Insert(TKey key, TData data)
   {
     try
