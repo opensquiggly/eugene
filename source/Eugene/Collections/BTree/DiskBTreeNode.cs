@@ -127,16 +127,16 @@ public class DiskBTreeNode<TKey, TData>
       if (this.IsLeafNode)
       {
         long oldNextAddress = this.NodeBlock.NextAddress;
-      
+
         // Set this node's NextAddress to the new node
         this.NodeBlock.NextAddress = newNode.Address;
         DiskBlockManager.WriteDataBlock<BTreeNodeBlock>(NodeBlockTypeIndex, this.Address, ref this.NodeBlock);
-      
+
         // Set the new node's NextAddress & PreviousAddress
         newNode.NodeBlock.PreviousAddress = this.Address;
         newNode.NodeBlock.NextAddress = oldNextAddress;
         DiskBlockManager.WriteDataBlock<BTreeNodeBlock>(NodeBlockTypeIndex, newNode.Address, ref newNode.NodeBlock);
-      
+
         // Update the old next node's PreviousAddress to the new node
         if (oldNextAddress != 0)
         {
@@ -269,7 +269,7 @@ public class DiskBTreeNode<TKey, TData>
     {
       return new Position(this.Address, this.BTree, this, 0);
     }
-    
+
     DiskBTreeNode<TKey, TData> childNode = NodeFactory.LoadExisting(BTree, ChildrenArray[0]);
     childNode.EnsureLoaded();
     return childNode.GetFirst();
@@ -350,7 +350,7 @@ public class DiskBTreeNode<TKey, TData>
       }
     }
   }
-  
+
   public class Position
   {
     public Position(DiskBTree<TKey, TData> btree)
@@ -359,7 +359,7 @@ public class DiskBTreeNode<TKey, TData>
       IsEmpty = true;
       NavigatedPastTail = false;
     }
-    
+
     public Position(long btreeAddress, DiskBTree<TKey, TData> btree, DiskBTreeNode<TKey, TData> currentNode, int currentIndex)
     {
       BTree = btree;
@@ -368,17 +368,17 @@ public class DiskBTreeNode<TKey, TData>
       IsEmpty = false;
       NavigatedPastTail = false;
     }
-    
+
     public DiskBTree<TKey, TData> BTree { get; private set; }
-    
+
     public DiskBTreeNode<TKey, TData> CurrentNode { get; private set; }
-    
+
     public int CurrentIndex { get; private set; }
-    
+
     public bool IsEmpty { get; }
-    
+
     public bool NavigatedPastTail { get; private set; }
-    
+
     public bool IsPastHead =>
       // ReSharper disable once ArrangeAccessorOwnerBody
       IsEmpty;
@@ -386,7 +386,7 @@ public class DiskBTreeNode<TKey, TData>
     public bool IsPastTail =>
       // ReSharper disable once ArrangeAccessorOwnerBody
       IsEmpty || NavigatedPastTail;
-    
+
     public TKey Key
     {
       get
@@ -399,7 +399,7 @@ public class DiskBTreeNode<TKey, TData>
         return CurrentNode.KeysArray[CurrentIndex];
       }
     }
-    
+
     public TData Value
     {
       get
@@ -419,7 +419,7 @@ public class DiskBTreeNode<TKey, TData>
       {
         return;
       }
-      
+
       if (CurrentIndex < CurrentNode.DataArray.Count - 1)
       {
         CurrentIndex++;
