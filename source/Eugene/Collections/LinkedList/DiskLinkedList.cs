@@ -104,7 +104,7 @@ public class DiskLinkedList<TData> where TData : struct
 
     if (listBlock.HeadAddress == 0)
     {
-      return new Position(this, listBlock);
+      return new Position(this);
     }
     else
     {
@@ -126,7 +126,7 @@ public class DiskLinkedList<TData> where TData : struct
 
   public class Position
   {
-    public Position(DiskLinkedList<TData> list, LinkedListBlock listBlock)
+    public Position(DiskLinkedList<TData> list)
     {
       List = list;
       IsEmpty = true;
