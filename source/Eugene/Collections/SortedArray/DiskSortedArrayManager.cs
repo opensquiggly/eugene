@@ -15,7 +15,7 @@ public class DiskSortedArrayManager : DiskArrayManager
   // Public Properties
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
-  public new DiskSortedArrayFactory<TData> CreateFactory<TData>(short dataBlockTypeIndex) where TData : struct, IComparable
+  public new DiskSortedArrayFactory<TData> CreateFactory<TData>(short dataBlockTypeIndex) where TData : struct, IComparable<TData>
   {
     return new DiskSortedArrayFactory<TData>(this, dataBlockTypeIndex);
   }

@@ -1,11 +1,8 @@
-using Eugene;
 using Eugene.Collections;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Eugene.Tests;
-
-using System.Runtime.InteropServices;
 
 [TestClass]
 public class BTreeTests

@@ -1,7 +1,7 @@
 namespace Eugene.Collections;
 
 public class DiskBTreeFactory<TKey, TData>
-  where TKey : struct, IComparable
+  where TKey : struct, IComparable<TKey>
   where TData : struct
 {
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -66,7 +66,7 @@ public class DiskBTreeFactory<TKey, TData>
     btreeBlock.RootNodeAddress = rootNode.Address;
     long btreeAddress = DiskBlockManager.AppendDataBlock<BTreeBlock>(BTreeBlockTypeIndex, ref btreeBlock);
 
-    result.ReplaceAddress(btreeAddress);
+    result.FriendOfDiskBTreeFactory_ReplaceAddress(btreeAddress);
 
     return result;
   }

@@ -28,8 +28,8 @@ public class DiskBTreeManager
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
   public DiskBTreeFactory<TKey, TData> CreateFactory<TKey, TData>(short keyBlockTypeIndex, short dataBlockTypeIndex)
-    where TKey : struct, IComparable
-    where TData : struct, IComparable
+    where TKey : struct, IComparable<TKey>
+    where TData : struct
   {
     return new DiskBTreeFactory<TKey, TData>(this, keyBlockTypeIndex, dataBlockTypeIndex);
   }

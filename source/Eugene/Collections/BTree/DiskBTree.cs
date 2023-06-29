@@ -1,7 +1,10 @@
 namespace Eugene.Collections;
 
-public class DiskBTree<TKey, TData>
-  where TKey : struct, IComparable
+using System.Collections;
+using Enumerators;
+
+public class DiskBTree<TKey, TData> : IFastEnumerable<TKey, TData>
+  where TKey : struct, IComparable<TKey>
   where TData : struct
 {
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -19,10 +22,14 @@ public class DiskBTree<TKey, TData>
   }
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
-  // Private Properties / Member Variables
+  // Private Member Variables
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
-  private BTreeBlock BTreeBlock = default;
+  private BTreeBlock _bTreeBlock = default;
+
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+  // Private Properties
+  // /////////////////////////////////////////////////////////////////////////////////////////////
 
   private bool IsLoaded { get; set; } = false;
 
@@ -50,7 +57,7 @@ public class DiskBTree<TKey, TData>
 
   public DiskArrayFactory<TData> DataArrayFactory => Factory.DataArrayFactory;
 
-  public short NodeSize => IsLoaded ? BTreeBlock.NodeSize : TempNodeSize;
+  public short NodeSize => IsLoaded ? _bTreeBlock.NodeSize : TempNodeSize;
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Private Methods
@@ -60,22 +67,33 @@ public class DiskBTree<TKey, TData>
   {
     if (!IsLoaded)
     {
-      DiskBlockManager.ReadDataBlock<BTreeBlock>(BTreeBlockTypeIndex, Address, out BTreeBlock);
-      RootNode = NodeFactory.LoadExisting(this, BTreeBlock.RootNodeAddress);
+      DiskBlockManager.ReadDataBlock<BTreeBlock>(BTreeBlockTypeIndex, Address, out _bTreeBlock);
+      RootNode = NodeFactory.LoadExisting(this, _bTreeBlock.RootNodeAddress);
       RootNode.EnsureLoaded();
       IsLoaded = true;
     }
   }
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
-  // Public Methods
+  // Helper Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
-  public bool TryFind(TKey key, out TData data)
+  public void FriendOfDiskBTreeFactory_ReplaceAddress(long address)
   {
-    EnsureLoaded();
-    return RootNode.TryFind(key, out data);
+    // This function should not normally be used by the client. It is a helper function
+    // used by DiskBTreeFactory in the AppendNew() function.
+
+    if (IsLoaded)
+    {
+      throw new Exception("Cannot replace the address after the BTree has been loaded");
+    }
+
+    Address = address;
   }
+
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+  // Public Methods
+  // /////////////////////////////////////////////////////////////////////////////////////////////
 
   public TData Find(TKey key)
   {
@@ -90,10 +108,43 @@ public class DiskBTree<TKey, TData>
     }
   }
 
-  public DiskBTreeNode<TKey, TData>.Position GetFirst()
+  public IEnumerator<TData> GetEnumerator()
+  {
+    return new DiskBTreeCursor<TKey, TData>(this);
+  }
+
+  IEnumerator IEnumerable.GetEnumerator()
+  {
+    return GetEnumerator();
+  }
+
+  public IFastEnumerator<TKey, TData> GetFastEnumerator()
+  {
+    return new DiskBTreeCursor<TKey, TData>(this);
+  }
+
+  public DiskBTreeCursor<TKey, TData> GetFirst()
   {
     EnsureLoaded();
     return RootNode.GetFirst();
+  }
+
+  public DiskBTreeNode<TKey, TData> GetFirstLeafNode()
+  {
+    EnsureLoaded();
+    return RootNode.GetFirstLeafNode();
+  }
+
+  public DiskBTreeCursor<TKey, TData> GetLast()
+  {
+    EnsureLoaded();
+    return RootNode.GetLast();
+  }
+
+  public DiskBTreeNode<TKey, TData> GetLastLeafNode()
+  {
+    EnsureLoaded();
+    return RootNode.GetLastLeafNode();
   }
 
   public bool Insert(TKey key, TData data)
@@ -105,8 +156,8 @@ public class DiskBTree<TKey, TData>
       if (newRootNode.Address != RootNode.Address)
       {
         // Root node has changed
-        BTreeBlock.RootNodeAddress = newRootNode.Address;
-        DiskBlockManager.WriteDataBlock<BTreeBlock>(BTreeBlockTypeIndex, Address, ref BTreeBlock);
+        _bTreeBlock.RootNodeAddress = newRootNode.Address;
+        DiskBlockManager.WriteDataBlock<BTreeBlock>(BTreeBlockTypeIndex, Address, ref _bTreeBlock);
         RootNode = newRootNode;
       }
 
@@ -124,16 +175,9 @@ public class DiskBTree<TKey, TData>
     RootNode.Print();
   }
 
-  public void ReplaceAddress(long address)
+  public bool TryFind(TKey key, out TData data)
   {
-    // This function should not normally be used by the client. It is a helper function
-    // used by DiskBTreeFactory in the AppendNew() function.
-
-    if (IsLoaded)
-    {
-      throw new Exception("Cannot replace the address after the BTree has been loaded");
-    }
-
-    Address = address;
+    EnsureLoaded();
+    return RootNode.TryFind(key, out data);
   }
 }

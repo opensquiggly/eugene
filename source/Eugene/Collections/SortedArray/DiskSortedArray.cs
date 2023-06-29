@@ -1,6 +1,6 @@
 namespace Eugene.Collections;
 
-public class DiskSortedArray<TData> : DiskArray<TData> where TData : struct, IComparable
+public class DiskSortedArray<TData> : DiskArray<TData> where TData : struct, IComparable<TData>
 {
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Constructors

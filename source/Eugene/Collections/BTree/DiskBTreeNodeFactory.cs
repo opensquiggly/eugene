@@ -1,7 +1,7 @@
 namespace Eugene.Collections;
 
 public class DiskBTreeNodeFactory<TKey, TData>
-  where TKey : struct, IComparable
+  where TKey : struct, IComparable<TKey>
   where TData : struct
 {
   // /////////////////////////////////////////////////////////////////////////////////////////////

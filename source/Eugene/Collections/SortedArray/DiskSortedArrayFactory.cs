@@ -1,7 +1,7 @@
 namespace Eugene.Collections;
 
 public class DiskSortedArrayFactory<TData> : DiskArrayFactory<TData>
-  where TData : struct, IComparable
+  where TData : struct, IComparable<TData>
 {
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Constructors

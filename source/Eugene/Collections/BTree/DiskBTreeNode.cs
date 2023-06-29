@@ -1,7 +1,7 @@
 namespace Eugene.Collections;
 
 public class DiskBTreeNode<TKey, TData>
-  where TKey : struct, IComparable
+  where TKey : struct, IComparable<TKey>
   where TData : struct
 {
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -16,46 +16,118 @@ public class DiskBTreeNode<TKey, TData>
   }
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
-  // Private Properties / Member Variables
+  // Private Member Variables
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
-  private BTreeNodeBlock NodeBlock = default;
+  private BTreeNodeBlock _nodeBlock = default;
 
-  private bool IsLoaded { get; set; } = false;
-
-  private DiskSortedArray<TKey> KeysArray { get; set; } = null;
-
-  // DataArray holds an array of TData items when IsLeafNode is true,
-  // or else is null if IsLeafNode is false
-  private DiskArray<TData> DataArray { get; set; } = null;
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+  // Private Properties
+  // /////////////////////////////////////////////////////////////////////////////////////////////
 
   // ChildrenArray holds an array of addresses to child BTreeNodeBlocks if
   // IsLeafNode is false, or else is null if IsLeafNode is true
   private DiskArray<long> ChildrenArray { get; set; } = null;
 
+  // DataArray holds an array of TData items when IsLeafNode is true,
+  // or else is null if IsLeafNode is false
+  private DiskArray<TData> DataArray { get; set; } = null;
+
+  private bool IsLoaded { get; set; } = false;
+
+  private DiskSortedArray<TKey> KeysArray { get; set; } = null;
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Properties
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
+  public long Address { get; }
+
   public DiskBTree<TKey, TData> BTree { get; }
 
-  public bool IsLeafNode => NodeBlock.IsLeafNode == 1;
-
   public short BTreeBlockTypeIndex => NodeFactory.BTreeBlockTypeIndex;
+
+  public int ChildrenCount
+  {
+    get
+    {
+      EnsureLoaded();
+      return this.ChildrenArray.Count;
+    }
+  }
+
+  public int ChildrenSize
+  {
+    get
+    {
+      EnsureLoaded();
+      return this.ChildrenArray.MaxItems;
+    }
+  }
+
+  public int DataCount
+  {
+    get
+    {
+      EnsureLoaded();
+      return this.DataArray.Count;
+    }
+  }
+
+  public long DataOrChildrenAddress
+  {
+    get
+    {
+      EnsureLoaded();
+      return this.DataOrChildrenAddress;
+    }
+  }
+
+  public DiskBlockManager DiskBlockManager => NodeFactory.DiskBlockManager;
+
+  public bool IsLeafNode
+  {
+    get
+    {
+      EnsureLoaded();
+      return _nodeBlock.IsLeafNode == 1;
+    }
+  }
+
+  public long KeysAddress
+  {
+    get
+    {
+      EnsureLoaded();
+      return _nodeBlock.KeysAddress;
+    }
+  }
+
+  public int KeysCount => this.KeysArray.Count;
+
+  public long NextAddress
+  {
+    get
+    {
+      EnsureLoaded();
+      return _nodeBlock.NextAddress;
+    }
+  }
 
   public short NodeBlockTypeIndex => NodeFactory.NodeBlockTypeIndex;
 
   public DiskBTreeNodeFactory<TKey, TData> NodeFactory { get; }
 
-  public long Address { get; }
-
-  public DiskBlockManager DiskBlockManager => NodeFactory.DiskBlockManager;
-
   public int NodeSize => BTree.NodeSize;
 
-  public long NextAddress => NodeBlock.NextAddress;
-
-  public long PreviousAddress => NodeBlock.PreviousAddress;
+  public long PreviousAddress
+  {
+    get
+    {
+      EnsureLoaded();
+      return _nodeBlock.PreviousAddress;
+    }
+  }
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Private Methods
@@ -126,24 +198,24 @@ public class DiskBTreeNode<TKey, TData>
       // Link the leaf nodes together
       if (this.IsLeafNode)
       {
-        long oldNextAddress = this.NodeBlock.NextAddress;
+        long oldNextAddress = this._nodeBlock.NextAddress;
 
         // Set this node's NextAddress to the new node
-        this.NodeBlock.NextAddress = newNode.Address;
-        DiskBlockManager.WriteDataBlock<BTreeNodeBlock>(NodeBlockTypeIndex, this.Address, ref this.NodeBlock);
+        this._nodeBlock.NextAddress = newNode.Address;
+        DiskBlockManager.WriteDataBlock<BTreeNodeBlock>(NodeBlockTypeIndex, this.Address, ref this._nodeBlock);
 
         // Set the new node's NextAddress & PreviousAddress
-        newNode.NodeBlock.PreviousAddress = this.Address;
-        newNode.NodeBlock.NextAddress = oldNextAddress;
-        DiskBlockManager.WriteDataBlock<BTreeNodeBlock>(NodeBlockTypeIndex, newNode.Address, ref newNode.NodeBlock);
+        newNode._nodeBlock.PreviousAddress = this.Address;
+        newNode._nodeBlock.NextAddress = oldNextAddress;
+        DiskBlockManager.WriteDataBlock<BTreeNodeBlock>(NodeBlockTypeIndex, newNode.Address, ref newNode._nodeBlock);
 
         // Update the old next node's PreviousAddress to the new node
         if (oldNextAddress != 0)
         {
           DiskBTreeNode<TKey, TData> nextNode = NodeFactory.LoadExisting(BTree, oldNextAddress);
           nextNode.EnsureLoaded();
-          nextNode.NodeBlock.PreviousAddress = newNode.Address;
-          DiskBlockManager.WriteDataBlock<BTreeNodeBlock>(NodeBlockTypeIndex, nextNode.Address, ref nextNode.NodeBlock);
+          nextNode._nodeBlock.PreviousAddress = newNode.Address;
+          DiskBlockManager.WriteDataBlock<BTreeNodeBlock>(NodeBlockTypeIndex, nextNode.Address, ref nextNode._nodeBlock);
         }
       }
 
@@ -183,20 +255,41 @@ public class DiskBTreeNode<TKey, TData>
   // Public Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
+  public long GetChildAddressAt(int index)
+  {
+    EnsureLoaded();
+    return this.ChildrenArray[index];
+  }
+
+  public TData GetDataAt(int index)
+  {
+    EnsureLoaded();
+    return this.DataArray[index];
+  }
+
+  public TKey GetKeyAt(int index)
+  {
+    EnsureLoaded();
+    return this.KeysArray[index];
+  }
+
   public void EnsureLoaded()
   {
     if (!IsLoaded)
     {
-      DiskBlockManager.ReadDataBlock<BTreeNodeBlock>(NodeBlockTypeIndex, Address, out NodeBlock);
-      KeysArray = NodeFactory.KeyArrayFactory.LoadExisting(NodeBlock.KeysAddress);
-      if (NodeBlock.IsLeafNode == 1)
+      DiskBlockManager.ReadDataBlock<BTreeNodeBlock>(NodeBlockTypeIndex, Address, out _nodeBlock);
+      KeysArray = NodeFactory.KeyArrayFactory.LoadExisting(_nodeBlock.KeysAddress);
+      KeysArray.EnsureLoaded();
+      if (_nodeBlock.IsLeafNode == 1)
       {
-        DataArray = NodeFactory.DataArrayFactory.LoadExisting(NodeBlock.DataOrChildrenAddress);
+        DataArray = NodeFactory.DataArrayFactory.LoadExisting(_nodeBlock.DataOrChildrenAddress);
+        DataArray.EnsureLoaded();
         ChildrenArray = null;
       }
       else
       {
-        ChildrenArray = DiskBlockManager.ArrayOfLongFactory.LoadExisting(NodeBlock.DataOrChildrenAddress);
+        ChildrenArray = DiskBlockManager.ArrayOfLongFactory.LoadExisting(_nodeBlock.DataOrChildrenAddress);
+        ChildrenArray.EnsureLoaded();
       }
 
       IsLoaded = true;
@@ -231,6 +324,87 @@ public class DiskBTreeNode<TKey, TData>
     return childNode.Find(key);
   }
 
+  public DiskBTreeCursor<TKey, TData> GetFirst()
+  {
+    EnsureLoaded();
+
+    if (IsLeafNode)
+    {
+      return new DiskBTreeCursor<TKey, TData>(this.BTree, this, 0);
+    }
+
+    DiskBTreeNode<TKey, TData> childNode = NodeFactory.LoadExisting(BTree, ChildrenArray[0]);
+    childNode.EnsureLoaded();
+    return childNode.GetFirst();
+  }
+
+  public DiskBTreeNode<TKey, TData> GetFirstLeafNode()
+  {
+    EnsureLoaded();
+
+    if (IsLeafNode)
+    {
+      return this;
+    }
+
+    DiskBTreeNode<TKey, TData> childNode = NodeFactory.LoadExisting(BTree, ChildrenArray[0]);
+    childNode.EnsureLoaded();
+    return childNode.GetFirstLeafNode();
+  }
+
+  public DiskBTreeCursor<TKey, TData> GetLast()
+  {
+    EnsureLoaded();
+
+    if (IsLeafNode)
+    {
+      return new DiskBTreeCursor<TKey, TData>(this.BTree, this, this.DataCount - 1);
+    }
+
+    DiskBTreeNode<TKey, TData> childNode = NodeFactory.LoadExisting(BTree, ChildrenArray[0]);
+    childNode.EnsureLoaded();
+    return childNode.GetLast();
+  }
+
+  public DiskBTreeNode<TKey, TData> GetLastLeafNode()
+  {
+    EnsureLoaded();
+
+    if (IsLeafNode)
+    {
+      return this;
+    }
+
+    DiskBTreeNode<TKey, TData> childNode = NodeFactory.LoadExisting(BTree, ChildrenArray[0]);
+    childNode.EnsureLoaded();
+    return childNode.GetFirstLeafNode();
+  }
+
+  public DiskBTreeNode<TKey, TData> Insert(TKey key, TData data)
+  {
+    try
+    {
+      EnsureLoaded();
+
+      if (this.KeysArray.IsFull)
+      {
+        DiskBTreeNode<TKey, TData> newRootNode = NodeFactory.AppendNew(this.BTree, false);
+        newRootNode.EnsureLoaded();
+        newRootNode.ChildrenArray.AddItem(this.Address);
+        this.Split(newRootNode, 0);
+        newRootNode.InsertNonFull(key, data);
+        return newRootNode;
+      }
+
+      this.InsertNonFull(key, data);
+      return this;
+    }
+    catch (Exception ex)
+    {
+      throw new Exception($"DiskBTreeNode.Insert Failed. key = {key}, data = {data}", ex);
+    }
+  }
+
   public bool TryFind(TKey key, out TData data)
   {
     int index;
@@ -261,47 +435,6 @@ public class DiskBTreeNode<TKey, TData>
     return childNode.TryFind(key, out data);
   }
 
-  public Position GetFirst()
-  {
-    EnsureLoaded();
-
-    if (IsLeafNode)
-    {
-      return new Position(this.Address, this.BTree, this, 0);
-    }
-
-    DiskBTreeNode<TKey, TData> childNode = NodeFactory.LoadExisting(BTree, ChildrenArray[0]);
-    childNode.EnsureLoaded();
-    return childNode.GetFirst();
-  }
-
-  public DiskBTreeNode<TKey, TData> Insert(TKey key, TData data)
-  {
-    try
-    {
-      EnsureLoaded();
-
-      if (this.KeysArray.IsFull)
-      {
-        DiskBTreeNode<TKey, TData> newRootNode = NodeFactory.AppendNew(this.BTree, false);
-        newRootNode.EnsureLoaded();
-        newRootNode.ChildrenArray.AddItem(this.Address);
-        this.Split(newRootNode, 0);
-        newRootNode.InsertNonFull(key, data);
-        return newRootNode;
-      }
-      else
-      {
-        this.InsertNonFull(key, data);
-        return this;
-      }
-    }
-    catch (Exception ex)
-    {
-      throw new Exception($"DiskBTreeNode.Insert Failed. key = {key}, data = {data}", ex);
-    }
-  }
-
   public void Print()
   {
     var queue = new Queue<long>();
@@ -313,13 +446,9 @@ public class DiskBTreeNode<TKey, TData>
       DiskBTreeNode<TKey, TData> node = NodeFactory.LoadExisting(this.BTree, nodeAddress);
       node.EnsureLoaded();
 
-      // if (node.IsLeafNode)
-      // {
-      // Console.WriteLine($"Level = {level}");
       Console.WriteLine($"---------------");
       Console.WriteLine($"Address = {node.Address}");
       Console.WriteLine($"IsLeafNode = {node.IsLeafNode}");
-      // }
 
       if (node.IsLeafNode)
       {
@@ -348,94 +477,6 @@ public class DiskBTreeNode<TKey, TData>
           queue.Enqueue(node.ChildrenArray[x]);
         }
       }
-    }
-  }
-
-  public class Position
-  {
-    public Position(DiskBTree<TKey, TData> btree)
-    {
-      BTree = btree;
-      IsEmpty = true;
-      NavigatedPastTail = false;
-    }
-
-    public Position(long btreeAddress, DiskBTree<TKey, TData> btree, DiskBTreeNode<TKey, TData> currentNode, int currentIndex)
-    {
-      BTree = btree;
-      CurrentNode = currentNode;
-      CurrentIndex = currentIndex;
-      IsEmpty = false;
-      NavigatedPastTail = false;
-    }
-
-    public DiskBTree<TKey, TData> BTree { get; private set; }
-
-    public DiskBTreeNode<TKey, TData> CurrentNode { get; private set; }
-
-    public int CurrentIndex { get; private set; }
-
-    public bool IsEmpty { get; }
-
-    public bool NavigatedPastTail { get; private set; }
-
-    public bool IsPastHead =>
-      // ReSharper disable once ArrangeAccessorOwnerBody
-      IsEmpty;
-
-    public bool IsPastTail =>
-      // ReSharper disable once ArrangeAccessorOwnerBody
-      IsEmpty || NavigatedPastTail;
-
-    public TKey Key
-    {
-      get
-      {
-        if (IsPastHead || IsPastTail)
-        {
-          throw new IndexOutOfRangeException();
-        }
-
-        return CurrentNode.KeysArray[CurrentIndex];
-      }
-    }
-
-    public TData Value
-    {
-      get
-      {
-        if (IsPastHead || IsPastTail)
-        {
-          throw new IndexOutOfRangeException();
-        }
-
-        return CurrentNode.DataArray[CurrentIndex];
-      }
-    }
-
-    public void Next()
-    {
-      if (IsPastTail)
-      {
-        return;
-      }
-
-      if (CurrentIndex < CurrentNode.DataArray.Count - 1)
-      {
-        CurrentIndex++;
-        return;
-      }
-
-      if (CurrentNode.NextAddress != 0)
-      {
-        CurrentNode = CurrentNode.NodeFactory.LoadExisting(BTree, CurrentNode.NextAddress);
-        CurrentNode.EnsureLoaded();
-        CurrentIndex = 0;
-        NavigatedPastTail = CurrentNode.DataArray.Count == 0;
-        return;
-      }
-
-      NavigatedPastTail = true;
     }
   }
 }
