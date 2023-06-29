@@ -45,9 +45,9 @@ public class DiskBTreeCursor<TKey, TData> : IDictionaryCursor<TKey, TData>
 
   public DiskBTree<TKey, TData> BTree { get; private set; }
 
-  public TData Current => CurrentData;
+  public TKey Current => CurrentKey;
 
-  object IEnumerator.Current => CurrentData;
+  object IEnumerator.Current => CurrentKey;
 
   public TData CurrentData
   {
