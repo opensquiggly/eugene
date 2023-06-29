@@ -108,7 +108,7 @@ public class DiskBTree<TKey, TData> : IFastEnumerable<TKey, TData>
     }
   }
 
-  public IEnumerator<TData> GetEnumerator()
+  public IEnumerator<TKey> GetEnumerator()
   {
     return new DiskBTreeCursor<TKey, TData>(this);
   }
