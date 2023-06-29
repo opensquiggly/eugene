@@ -13,48 +13,16 @@ public class DiskArray<TData> where TData : struct
   }
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
-  // Protected Properties / Member Variables
+  // Protected Member Variables
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
-  protected ArrayBlock ArrayBlock = default;
+  protected ArrayBlock _arrayBlock = default;
+
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+  // Protected Properties
+  // /////////////////////////////////////////////////////////////////////////////////////////////
 
   protected bool IsLoaded { get; set; } = false;
-
-  // /////////////////////////////////////////////////////////////////////////////////////////////
-  // Public Properties
-  // /////////////////////////////////////////////////////////////////////////////////////////////
-
-  public long Address { get; }
-
-  public int ArrayBlockTypeIndex => Factory.ArrayBlockTypeIndex;
-
-  public IDiskBlockManager DiskBlockManager => Factory.DiskBlockManager;
-
-  public DiskArrayFactory<TData> Factory { get; }
-
-  public int Count => GetCount();
-
-  public bool IsFull
-  {
-    get
-    {
-      EnsureLoaded();
-      return this.Count >= ArrayBlock.MaxItems;
-    }
-  }
-
-  // /////////////////////////////////////////////////////////////////////////////////////////////
-  // Protected Methods
-  // /////////////////////////////////////////////////////////////////////////////////////////////
-
-  protected void EnsureLoaded()
-  {
-    if (!IsLoaded)
-    {
-      DiskBlockManager.ReadDataBlock<ArrayBlock>(ArrayBlockTypeIndex, Address, out ArrayBlock);
-      IsLoaded = true;
-    }
-  }
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Indexer
@@ -68,6 +36,72 @@ public class DiskArray<TData> where TData : struct
       return temp;
     }
     set => SetAt(index, value);
+  }
+
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+  // Public Properties
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+
+  public long Address { get; }
+
+  public int ArrayBlockTypeIndex => Factory.ArrayBlockTypeIndex;
+
+  public int Count
+  {
+    get
+    {
+      EnsureLoaded();
+      return _arrayBlock.Count;
+    }
+  }
+
+  public long DataAddress
+  {
+    get
+    {
+      EnsureLoaded();
+      return _arrayBlock.DataAddress;
+    }
+  }
+
+  public short DataBlockTypeIndex
+  {
+    get
+    {
+      EnsureLoaded();
+      return _arrayBlock.DataBlockTypeIndex;
+    }
+  }
+
+  public int DataSize
+  {
+    get
+    {
+      EnsureLoaded();
+      return _arrayBlock.DataSize;
+    }
+  }
+
+  public IDiskBlockManager DiskBlockManager => Factory.DiskBlockManager;
+
+  public DiskArrayFactory<TData> Factory { get; }
+
+  public bool IsFull
+  {
+    get
+    {
+      EnsureLoaded();
+      return this.Count >= _arrayBlock.MaxItems;
+    }
+  }
+
+  public int MaxItems
+  {
+    get
+    {
+      EnsureLoaded();
+      return _arrayBlock.MaxItems;
+    }
   }
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -103,61 +137,64 @@ public class DiskArray<TData> where TData : struct
     // Note: DiskSortedArray overrides this method and adds the item in sorted order
     EnsureLoaded();
 
-    if (ArrayBlock.Count == ArrayBlock.MaxItems)
+    if (_arrayBlock.Count == _arrayBlock.MaxItems)
     {
       throw new Exception("DiskArray: Maximum array size exceeded");
     }
 
     DiskBlockManager.WriteDataBlock(
       Factory.DataBlockTypeIndex,
-      ArrayBlock.DataAddress + ArrayBlock.DataSize * ArrayBlock.Count,
+      _arrayBlock.DataAddress + _arrayBlock.DataSize * _arrayBlock.Count,
       ref item
     );
 
-    ArrayBlock.Count++;
-    DiskBlockManager.WriteDataBlock(ArrayBlockTypeIndex, Address, ref ArrayBlock);
+    _arrayBlock.Count++;
+    DiskBlockManager.WriteDataBlock(ArrayBlockTypeIndex, Address, ref _arrayBlock);
     DiskBlockManager.Flush();
 
-    return ArrayBlock.Count - 1;
+    return _arrayBlock.Count - 1;
+  }
+
+  public void EnsureLoaded()
+  {
+    if (!IsLoaded)
+    {
+      DiskBlockManager.ReadDataBlock<ArrayBlock>(ArrayBlockTypeIndex, Address, out _arrayBlock);
+      IsLoaded = true;
+    }
   }
 
   public void GetAt(int index, out TData item)
   {
     EnsureLoaded();
 
-    if (index < 0 || index > ArrayBlock.Count - 1)
+    if (index < 0 || index > _arrayBlock.Count - 1)
     {
       throw new Exception($"DiskArray: Requested index is outside the bounds of the array, index = {index}");
     }
 
     DiskBlockManager.ReadDataBlock(
       Factory.DataBlockTypeIndex,
-      ArrayBlock.DataAddress + ArrayBlock.DataSize * index,
+      _arrayBlock.DataAddress + _arrayBlock.DataSize * index,
       out item
     );
-  }
-
-  public int GetCount()
-  {
-    EnsureLoaded();
-    return ArrayBlock.Count;
   }
 
   public void Grow(int growBy)
   {
     EnsureLoaded();
 
-    if (ArrayBlock.Count + growBy > ArrayBlock.MaxItems)
+    if (_arrayBlock.Count + growBy > _arrayBlock.MaxItems)
     {
       throw new IndexOutOfRangeException(
         $"Growing the array would exceed the max items allowed. " +
-          $"Count = {ArrayBlock.Count}, " +
-          $"MaxItems = {ArrayBlock.MaxItems}"
+          $"Count = {_arrayBlock.Count}, " +
+          $"MaxItems = {_arrayBlock.MaxItems}"
       );
     }
 
-    ArrayBlock.Count += growBy;
-    DiskBlockManager.WriteDataBlock(ArrayBlockTypeIndex, Address, ref ArrayBlock);
+    _arrayBlock.Count += growBy;
+    DiskBlockManager.WriteDataBlock(ArrayBlockTypeIndex, Address, ref _arrayBlock);
   }
 
   public void InsertAt(int index, TData item)
@@ -174,22 +211,22 @@ public class DiskArray<TData> where TData : struct
 
     // Note: We allow you to add new items to the end of the array so long as
     // the MaxItems property doesn't get exceeded.
-    if (index < 0 || index > ArrayBlock.Count || index > ArrayBlock.MaxItems - 1)
+    if (index < 0 || index > _arrayBlock.Count || index > _arrayBlock.MaxItems - 1)
     {
       throw new Exception("DiskArray: Requested index is outside the bounds of the array");
     }
 
     DiskBlockManager.WriteDataBlock(
       Factory.DataBlockTypeIndex,
-      ArrayBlock.DataAddress + ArrayBlock.DataSize * index,
+      _arrayBlock.DataAddress + _arrayBlock.DataSize * index,
       ref item
     );
 
-    if (index == ArrayBlock.Count)
+    if (index == _arrayBlock.Count)
     {
       // Client added a new item to end of list. Increment the Count;
-      ArrayBlock.Count++;
-      DiskBlockManager.WriteDataBlock(ArrayBlockTypeIndex, Address, ref ArrayBlock);
+      _arrayBlock.Count++;
+      DiskBlockManager.WriteDataBlock(ArrayBlockTypeIndex, Address, ref _arrayBlock);
     }
   }
 
@@ -209,10 +246,10 @@ public class DiskArray<TData> where TData : struct
   public void Truncate(int count)
   {
     EnsureLoaded();
-    if (count < ArrayBlock.Count)
+    if (count < _arrayBlock.Count)
     {
-      ArrayBlock.Count = count;
-      DiskBlockManager.WriteDataBlock(ArrayBlockTypeIndex, Address, ref ArrayBlock);
+      _arrayBlock.Count = count;
+      DiskBlockManager.WriteDataBlock(ArrayBlockTypeIndex, Address, ref _arrayBlock);
     }
   }
 }
