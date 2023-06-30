@@ -324,6 +324,48 @@ public class DiskBTreeNode<TKey, TData>
     return childNode.Find(key);
   }
 
+  public (DiskBTreeNode<TKey, TData> node, int index) FindFirstGreaterThanOrEqual(TKey key)
+  {
+    int index;
+    EnsureLoaded();
+
+    if (IsLeafNode)
+    {
+      index = this.KeysArray.FindFirstGreaterThanOrEqual(key);
+      if (index >= 0)
+      {
+        return (this, index);
+      }
+
+      return (null, -1);
+    }
+
+    index = this.KeysArray.FindFirstGreaterThan(key);
+    if (index == -1)
+    {
+      index = ChildrenArray.Count - 1;
+    }
+
+    // Recurse into child node to find the leaf node
+    DiskBTreeNode<TKey, TData> childNode = NodeFactory.LoadExisting(BTree, ChildrenArray[index]);
+    childNode.EnsureLoaded();
+
+    (DiskBTreeNode<TKey, TData> foundNode, int foundIndex) = childNode.FindFirstGreaterThanOrEqual(key);
+    if (foundNode != null)
+    {
+      return (foundNode, foundIndex);
+    }
+
+    if (index < ChildrenArray.Count - 1)
+    {
+      DiskBTreeNode<TKey, TData> childNode2 = NodeFactory.LoadExisting(BTree, ChildrenArray[index + 1]);
+      childNode2.EnsureLoaded();
+      return childNode2.FindFirstGreaterThanOrEqual(key);
+    }
+
+    return (null, -1);
+  }
+
   public DiskBTreeCursor<TKey, TData> GetFirst()
   {
     EnsureLoaded();

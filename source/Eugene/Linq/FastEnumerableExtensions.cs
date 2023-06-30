@@ -4,7 +4,7 @@ using Enumerators;
 
 public static class FastEnumerableExtensions
 {
-  public static IEnumerable<TData> FastIntersect<TKey, TData>(
+  public static IEnumerable<TKey> FastIntersect<TKey, TData>(
     this IFastEnumerable<TKey, TData> enumerable1,
     IFastEnumerable<TKey, TData> enumberable2)
     where TKey : IComparable<TKey>
@@ -29,7 +29,7 @@ public static class FastEnumerableExtensions
       }
       else
       {
-        yield return enumerator1.CurrentData;
+        yield return enumerator1.CurrentKey;
 
         hasValue1 = enumerator1.MoveNext();
         hasValue2 = enumerator2.MoveNext();

@@ -108,6 +108,22 @@ public class DiskBTreeCursor<TKey, TData> : IDictionaryCursor<TKey, TData>
 
   public bool MoveNext()
   {
+    if (NavigatedPastBeginning)
+    {
+      CurrentNode = BTree.GetFirstLeafNode();
+
+      if (CurrentNode == null || CurrentNode.KeysCount == 0)
+      {
+        IsEmpty = true;
+        CurrentIndex = -1;
+        return false;
+      }
+
+      NavigatedPastBeginning = false;
+      CurrentIndex = 0;
+      return true;
+    }
+
     if (IsPastEnd)
     {
       return false;
@@ -134,6 +150,22 @@ public class DiskBTreeCursor<TKey, TData> : IDictionaryCursor<TKey, TData>
 
   public bool MovePrevious()
   {
+    if (NavigatedPastEnd)
+    {
+      CurrentNode = BTree.GetLastLeafNode();
+
+      if (CurrentNode == null || CurrentNode.KeysCount == 0)
+      {
+        IsEmpty = true;
+        CurrentIndex = -1;
+        return false;
+      }
+
+      NavigatedPastEnd = false;
+      CurrentIndex = CurrentNode.KeysCount - 1;
+      return true;
+    }
+
     if (IsPastBeginning)
     {
       return false;
@@ -158,34 +190,33 @@ public class DiskBTreeCursor<TKey, TData> : IDictionaryCursor<TKey, TData>
     return false;
   }
 
-  public bool MoveUntilGreaterThanOrEqual(TKey target)
+  public bool MoveUntilGreaterThanOrEqual(TKey targetKey)
   {
-    throw new NotImplementedException();
+    (DiskBTreeNode<TKey, TData> node, int index) = BTree.FindFirstGreaterThanOrEqual(targetKey);
+
+    if (node == null)
+    {
+      NavigatedPastEnd = true;
+      CurrentNode = null;
+      CurrentIndex = -1;
+      return false;
+    }
+
+    node.EnsureLoaded();
+    CurrentNode = node;
+    CurrentIndex = index;
+    return true;
   }
 
   public void Reset()
   {
-    CurrentNode = BTree.GetFirstLeafNode();
-
-    if (CurrentNode == null || CurrentNode.KeysCount == 0)
-    {
-      IsEmpty = true;
-      CurrentIndex = -1;
-    }
-
-    CurrentIndex = 0;
+    NavigatedPastBeginning = true;
+    NavigatedPastEnd = false;
   }
 
   public void ResetToEnd()
   {
-    CurrentNode = BTree.GetLastLeafNode();
-
-    if (CurrentNode == null || CurrentNode.KeysCount == 0)
-    {
-      IsEmpty = true;
-      CurrentIndex = -1;
-    }
-
-    CurrentIndex = CurrentNode.KeysCount - 1;
+    NavigatedPastBeginning = false;
+    NavigatedPastEnd = true;
   }
 }
