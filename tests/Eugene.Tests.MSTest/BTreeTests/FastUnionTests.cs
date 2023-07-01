@@ -37,33 +37,40 @@ public class FastUnionTests
     IFastUnionEnumerator<int, int> unionEnumerator = btree1.FastUnion(btree2).GetFastEnumerator();
 
     unionEnumerator.MoveNext();
-    Console.WriteLine($"{unionEnumerator.CurrentKey} : {unionEnumerator.CurrentData}");
-
+    unionEnumerator.CurrentKey.Should().Be(1, "Should find the first key in the list");
+    unionEnumerator.CurrentData.Should().Be(100, "Should match data element of first list");
+    
     unionEnumerator.MoveNext();
-    Console.WriteLine($"{unionEnumerator.CurrentKey} : {unionEnumerator.CurrentData}");
+    unionEnumerator.CurrentKey.Should().Be(1, "Should find the first key in the list");
+    unionEnumerator.CurrentData.Should().Be(200, "Should match data element of second list");
+    
+    unionEnumerator.MoveNext();
+    unionEnumerator.CurrentKey.Should().Be(3, "Should find keys2[1] ");
+    unionEnumerator.CurrentData.Should().Be(201, "Should match keys2[1] data");
 
     unionEnumerator.MoveUntilGreaterThanOrEqual(71);
-    Console.WriteLine($"{unionEnumerator.CurrentKey} : {unionEnumerator.CurrentData}");
+    unionEnumerator.CurrentKey.Should().Be(71, "Should find keys1[4] ");
+    unionEnumerator.CurrentData.Should().Be(204, "Should match keys2[4] data");
 
     unionEnumerator.MoveNext();
-    Console.WriteLine($"{unionEnumerator.CurrentKey} : {unionEnumerator.CurrentData}");
+    unionEnumerator.CurrentKey.Should().Be(73, "Should find keys2[18] ");
+    unionEnumerator.CurrentData.Should().Be(118, "Should match keys2[18] data");
 
     unionEnumerator.MoveNext();
-    Console.WriteLine($"{unionEnumerator.CurrentKey} : {unionEnumerator.CurrentData}");
-
+    unionEnumerator.CurrentKey.Should().Be(75, "Should find keys2[5] ");
+    unionEnumerator.CurrentData.Should().Be(205, "Should match keys2[5] data");
+    
     unionEnumerator.MoveNext();
-    Console.WriteLine($"{unionEnumerator.CurrentKey} : {unionEnumerator.CurrentData}");
-
+    unionEnumerator.CurrentKey.Should().Be(79, "Should find keys1[19] ");
+    unionEnumerator.CurrentData.Should().Be(119, "Should match keys1[19] data");
+    
     unionEnumerator.MoveNext();
-    Console.WriteLine($"{unionEnumerator.CurrentKey} : {unionEnumerator.CurrentData}");
-
+    unionEnumerator.CurrentKey.Should().Be(79, "Should find keys2[6] ");
+    unionEnumerator.CurrentData.Should().Be(206, "Should match keys2[6] data");
+    
     unionEnumerator.MoveNext();
-    Console.WriteLine($"{unionEnumerator.CurrentKey} : {unionEnumerator.CurrentData}");
-
-    while (unionEnumerator.MoveNext())
-    {
-      Console.WriteLine($"{unionEnumerator.CurrentKey} : {unionEnumerator.CurrentData}");
-    }
+    unionEnumerator.CurrentKey.Should().Be(89, "Should find keys2[7] ");
+    unionEnumerator.CurrentData.Should().Be(207, "Should match keys2[7] data");
 
     dmb.Close();
     File.Exists("fastintersect1.dat").Should().BeTrue("File fastintersect1.dat should exist after creating it");
