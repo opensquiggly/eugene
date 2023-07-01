@@ -45,10 +45,6 @@ public class FastUnionEnumerator<TKey, TData> : IFastUnionEnumerator<TKey, TData
 
   public TData CurrentData => CurrentEnumerator.CurrentData;
 
-  public TData CurrentData1 => CurrentEnumerator.CurrentData;
-
-  public TData CurrentData2 => CurrentEnumerator.CurrentData;
-
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
