@@ -1,9 +1,6 @@
 namespace Eugene.Collections;
 
-using System.Collections;
-using Enumerators;
-
-public class DiskBTree<TKey, TData> : IFastEnumerable<TKey, TData>
+public class DiskBTree<TKey, TData> : IFastEnumerable<IFastEnumerator<TKey, TData>, TKey, TData>
   where TKey : struct, IComparable<TKey>
   where TData : struct
 {

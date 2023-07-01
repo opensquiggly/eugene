@@ -1,6 +1,8 @@
 namespace Eugene.Enumerators;
 
-public interface IFastEnumerable<TKey, TData> : IEnumerable<TKey> where TKey : IComparable<TKey>
+public interface IFastEnumerable<TResult, TKey, TData> : IEnumerable<TKey>
+  where TKey : IComparable<TKey>
+  where TResult : IFastEnumerator<TKey, TData>
 {
-  IFastEnumerator<TKey, TData> GetFastEnumerator();
+  TResult GetFastEnumerator();
 }
