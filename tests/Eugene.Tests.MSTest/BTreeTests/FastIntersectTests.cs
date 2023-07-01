@@ -34,15 +34,22 @@ public class FastIntersectTests
       btree2.Insert(keys2[x], 200 + x);
     }
 
-    var enumerable1 = (IFastEnumerable<int, int>) btree1;
-    var enumerable2 = (IFastEnumerable<int, int>) btree2;
+    IFastIntersectEnumerator<int, int> intersectEnumerator = btree1.FastIntersect(btree2).GetFastEnumerator();
 
-    IEnumerable<int> intersection = enumerable1.FastIntersect(enumerable2);
+    intersectEnumerator.MoveNext();
+    intersectEnumerator.CurrentKey.Should().Be(1, "Should find the first key in the list");
+    intersectEnumerator.CurrentData1.Should().Be(100, "Should match data element of first list");
+    intersectEnumerator.CurrentData2.Should().Be(200, "Should match data element of second list");
 
-    foreach (int key in intersection)
-    {
-      Console.WriteLine(key);
-    }
+    intersectEnumerator.MoveUntilGreaterThanOrEqual(67);
+    intersectEnumerator.CurrentKey.Should().Be(67, "Should intersection key in the list");
+    intersectEnumerator.CurrentData1.Should().Be(115, "Should match data element of first list");
+    intersectEnumerator.CurrentData2.Should().Be(203, "Should match data element of second list");
+
+    intersectEnumerator.MoveNext();
+    intersectEnumerator.CurrentKey.Should().Be(79, "Should find the next intersection in the list");
+    intersectEnumerator.CurrentData1.Should().Be(119, "Should match data element of first list");
+    intersectEnumerator.CurrentData2.Should().Be(206, "Should match data element of second list");
 
     dmb.Close();
     File.Exists("fastintersect1.dat").Should().BeTrue("File fastintersect1.dat should exist after creating it");

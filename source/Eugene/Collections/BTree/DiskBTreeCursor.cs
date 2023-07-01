@@ -1,8 +1,5 @@
 namespace Eugene.Collections;
 
-using System.Collections;
-using Enumerators;
-
 public class DiskBTreeCursor<TKey, TData> : IDictionaryCursor<TKey, TData>
   where TKey : struct, IComparable<TKey>
   where TData : struct
