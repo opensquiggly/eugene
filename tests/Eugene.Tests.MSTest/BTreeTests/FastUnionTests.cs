@@ -39,11 +39,11 @@ public class FastUnionTests
     unionEnumerator.MoveNext();
     unionEnumerator.CurrentKey.Should().Be(1, "Should find the first key in the list");
     unionEnumerator.CurrentData.Should().Be(100, "Should match data element of first list");
-    
+
     unionEnumerator.MoveNext();
     unionEnumerator.CurrentKey.Should().Be(1, "Should find the first key in the list");
     unionEnumerator.CurrentData.Should().Be(200, "Should match data element of second list");
-    
+
     unionEnumerator.MoveNext();
     unionEnumerator.CurrentKey.Should().Be(3, "Should find keys2[1] ");
     unionEnumerator.CurrentData.Should().Be(201, "Should match keys2[1] data");
@@ -59,15 +59,15 @@ public class FastUnionTests
     unionEnumerator.MoveNext();
     unionEnumerator.CurrentKey.Should().Be(75, "Should find keys2[5] ");
     unionEnumerator.CurrentData.Should().Be(205, "Should match keys2[5] data");
-    
+
     unionEnumerator.MoveNext();
     unionEnumerator.CurrentKey.Should().Be(79, "Should find keys1[19] ");
     unionEnumerator.CurrentData.Should().Be(119, "Should match keys1[19] data");
-    
+
     unionEnumerator.MoveNext();
     unionEnumerator.CurrentKey.Should().Be(79, "Should find keys2[6] ");
     unionEnumerator.CurrentData.Should().Be(206, "Should match keys2[6] data");
-    
+
     unionEnumerator.MoveNext();
     unionEnumerator.CurrentKey.Should().Be(89, "Should find keys2[7] ");
     unionEnumerator.CurrentData.Should().Be(207, "Should match keys2[7] data");
