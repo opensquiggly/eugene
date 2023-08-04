@@ -70,12 +70,41 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
     LinkedListBlockType = RegisterBlockType<LinkedListBlock>();
     LinkedListNodeBlockType = RegisterBlockType<LinkedListNodeBlock>();
 
+    CompactByteListBlockType = RegisterBlockType<CompactByteListBlock>();
+    Fixed16ByteBlockType = RegisterBlockType<Fixed16ByteBlock>();
+    Fixed32ByteBlockType = RegisterBlockType<Fixed32ByteBlock>();
+    Fixed64ByteBlockType = RegisterBlockType<Fixed64ByteBlock>();
+    Fixed128ByteBlockType = RegisterBlockType<Fixed128ByteBlock>();
+    Fixed256ByteBlockType = RegisterBlockType<Fixed256ByteBlock>();
+    Fixed512ByteBlockType = RegisterBlockType<Fixed512ByteBlock>();
+    Fixed1KByteBlockType = RegisterBlockType<Fixed1KByteBlock>();
+    Fixed2KByteBlockType = RegisterBlockType<Fixed2KByteBlock>();
+    Fixed4KByteBlockType = RegisterBlockType<Fixed4KByteBlock>();
+    Fixed8KByteBlockType = RegisterBlockType<Fixed8KByteBlock>();
+    Fixed16KByteBlockType = RegisterBlockType<Fixed16KByteBlock>();
+
     ArrayManager = new DiskArrayManager(this, ArrayBlockType);
     SortedArrayManager = new DiskSortedArrayManager(this, ArrayBlockType);
     BTreeManager = new DiskBTreeManager(this, BTreeBlockType, BTreeNodeBlockType);
     FixedStringManager = new DiskFixedStringManager(this, ArrayBlockType);
     ImmutableStringManager = new DiskImmutableStringManager(this, ArrayBlockType);
     LinkedListManager = new DiskLinkedListManager(this, LinkedListBlockType, LinkedListNodeBlockType);
+
+    CompactListManager = new DiskCompactByteListManager(
+      this,
+      CompactByteListBlockType,
+      Fixed16ByteBlockType,
+      Fixed32ByteBlockType,
+      Fixed64ByteBlockType,
+      Fixed128ByteBlockType,
+      Fixed256ByteBlockType,
+      Fixed512ByteBlockType,
+      Fixed1KByteBlockType,
+      Fixed2KByteBlockType,
+      Fixed4KByteBlockType,
+      Fixed8KByteBlockType, 
+      Fixed16KByteBlockType
+    );
 
     ArrayOfShortFactory = ArrayManager.CreateFactory<short>(ShortBlockType);
     ArrayOfIntFactory = ArrayManager.CreateFactory<int>(IntBlockType);
@@ -85,6 +114,7 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
     SortedArrayOfLongFactory = SortedArrayManager.CreateFactory<long>(LongBlockType);
     FixedStringFactory = FixedStringManager.CreateFactory(CharBlockType);
     ImmutableStringFactory = ImmutableStringManager.CreateFactory(CharBlockType);
+    CompactListFactory = CompactListManager.CreateFactory();
   }
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -116,10 +146,30 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
   private short LinkedListBlockType { get; set; }
 
   private short LinkedListNodeBlockType { get; set; }
+  
+  private short CompactByteListBlockType { get; set; }
 
-  private short Fixed2KBlockType { get; set; }
-
-  private short Fixed4KBlockType { get; set; }
+  public short Fixed16ByteBlockType { get; }
+  
+  public short Fixed32ByteBlockType { get; }
+  
+  public short Fixed64ByteBlockType { get; }
+  
+  public short Fixed128ByteBlockType { get; }
+  
+  public short Fixed256ByteBlockType { get; }
+  
+  public short Fixed512ByteBlockType { get; }
+  
+  public short Fixed1KByteBlockType { get; }
+  
+  public short Fixed2KByteBlockType { get; }
+  
+  public short Fixed4KByteBlockType { get; }
+  
+  public short Fixed8KByteBlockType { get; }
+  
+  public short Fixed16KByteBlockType { get; }
 
   private DiskFixedStringManager FixedStringManager { get; set; }
 
@@ -144,10 +194,14 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
   public DiskSortedArrayManager SortedArrayManager { get; set; }
 
   public DiskBTreeManager BTreeManager { get; set; }
+  
+  public DiskCompactByteListManager CompactListManager { get; set; }
 
   public DiskFixedStringFactory FixedStringFactory { get; }
 
   public DiskImmutableStringFactory ImmutableStringFactory { get; }
+  
+  public DiskCompactByteListFactory CompactListFactory { get; }
 
   public IList<BlockTypeMetadataBlock> BlockTypeMetadataBlocksList { get; set; }
 
