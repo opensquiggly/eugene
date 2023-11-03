@@ -26,8 +26,8 @@ public class BasicTests
       // }
       // Console.WriteLine();
       // Console.Write(" Compress  => ");
-      
-      var compressed = DiskCompactByteList.AllocateBlocks(x);
+
+      List<DiskCompactByteList.FixedSizeBlockInfo> compressed = DiskCompactByteList.AllocateBlocks(x);
       first = true;
       foreach (DiskCompactByteList.FixedSizeBlockInfo? result in compressed)
       {
@@ -49,7 +49,7 @@ public class BasicTests
     var dmb = new DiskBlockManager();
     File.Delete("ByteListTest2.dat");
     dmb.CreateOrOpen("ByteListTest2.dat");
-    byte[] data = new byte[] { 1, 2, 3, 4, 5, 6, 7  };
+    byte[] data = new byte[] { 1, 2, 3, 4, 5, 6, 7 };
     DiskCompactByteList? compactByteList = dmb.CompactByteListFactory.AppendNew(data);
     compactByteList.Address.Should().NotBe(0, "We should have an address where the list starts");
 
@@ -57,7 +57,7 @@ public class BasicTests
     compactByteList.AppendData(data, data.Length);
 
     var cursor = new DiskCompactByteListCursor(compactByteList);
-    
+
     cursor.MoveNext();
     cursor.Current.Should().Be(1);
     cursor.MoveNext();
@@ -88,11 +88,11 @@ public class BasicTests
     cursor.Current.Should().Be(7);
 
     cursor.MoveNext().Should().Be(false);
-    
+
     dmb.Close();
     File.Delete("ByteListTest2.dat");
   }
-  
+
   [TestMethod]
   public void T003_AppendAndReadTestMultiBlocks()
   {
@@ -106,7 +106,7 @@ public class BasicTests
     compactByteList.AppendData(data, data.Length);
 
     var cursor = new DiskCompactByteListCursor(compactByteList);
-    
+
     cursor.MoveNext();
     cursor.Current.Should().Be(1);
     cursor.MoveNext();
@@ -140,10 +140,10 @@ public class BasicTests
     cursor.MoveNext();
     cursor.Current.Should().Be(16);
     cursor.MoveNext();
-    cursor.Current.Should().Be(17);    
-    
+    cursor.Current.Should().Be(17);
+
     cursor.MoveNext().Should().Be(false);
-    
+
     dmb.Close();
     File.Delete("ByteListTest2.dat");
   }
