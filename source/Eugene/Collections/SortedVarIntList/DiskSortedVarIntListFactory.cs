@@ -1,49 +1,36 @@
 namespace Eugene.Collections;
 
-public class DiskCompactByteListFactory
+public class DiskSortedVarIntListFactory
 {
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Constructors
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
-  public DiskCompactByteListFactory(FixedByteBlockManager fixedByteBlockManager, DiskCompactByteListManager manager)
+  public DiskSortedVarIntListFactory(DiskSortedVarIntListManager manager)
   {
-    FixedByteBlockManager = fixedByteBlockManager;
     Manager = manager;
   }
-
+  
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Properties
   // /////////////////////////////////////////////////////////////////////////////////////////////
+  
+  public DiskSortedVarIntListManager Manager { get; }
 
   public IDiskBlockManager DiskBlockManager => Manager.DiskBlockManager;
-  
-  public FixedByteBlockManager FixedByteBlockManager { get; }
 
-  public DiskCompactByteListManager Manager { get; }
+  public FixedByteBlockManager FixedByteBlockManager => Manager.FixedByteBlockManager;
 
-  public short CompactByteListBlockTypeIndex => Manager.CompactByteListBlockTypeIndex;
+  public DiskCompactByteListManager CompactByteListManager => Manager.CompactByteListManager;
   
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
-  public DiskCompactByteList AppendNew(byte[] data = null)
+  public DiskSortedVarIntList AppendNew(ulong[] data = null)
   {
-    CompactByteListBlock block = default;
-    block.HeadAddress = 0;
-    block.TailAddress = 0;
-    block.Count = 0;
-    long address = DiskBlockManager.AppendDataBlock<CompactByteListBlock>(CompactByteListBlockTypeIndex, ref block);
-
-    var result = new DiskCompactByteList(FixedByteBlockManager, this, address);
-    if (data != null)
-    {
-      // TODO: Figure out why this doesn't work
-      // result.AppendData(data);
-    }
-
-    return result;
+    DiskCompactByteList baseList = Manager.CompactByteListFactory.AppendNew();
+    return new DiskSortedVarIntList(baseList, Manager.FixedByteBlockManager, this);
   }
 
   public void Delete()
@@ -56,3 +43,4 @@ public class DiskCompactByteListFactory
     throw new NotImplementedException();
   }  
 }
+

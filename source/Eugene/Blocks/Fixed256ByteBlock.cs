@@ -4,6 +4,7 @@ public unsafe struct Fixed256ByteBlock : IFixedByteBlock
 {
   public long PreviousAddress { get; set; }
   public long NextAddress { get; set; }
+  public ushort BytesStored { get; set; }
   public fixed byte Data[256];
   public int Size => 256;
 

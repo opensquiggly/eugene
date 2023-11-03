@@ -89,9 +89,25 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
     FixedStringManager = new DiskFixedStringManager(this, ArrayBlockType);
     ImmutableStringManager = new DiskImmutableStringManager(this, ArrayBlockType);
     LinkedListManager = new DiskLinkedListManager(this, LinkedListBlockType, LinkedListNodeBlockType);
-
-    CompactListManager = new DiskCompactByteListManager(
+    
+    FixedByteBlockManager = new FixedByteBlockManager(
       this,
+      Fixed16ByteBlockType,
+      Fixed32ByteBlockType,
+      Fixed64ByteBlockType,
+      Fixed128ByteBlockType,
+      Fixed256ByteBlockType,
+      Fixed512ByteBlockType,
+      Fixed1KByteBlockType,
+      Fixed2KByteBlockType,
+      Fixed4KByteBlockType,
+      Fixed8KByteBlockType, 
+      Fixed16KByteBlockType
+    );
+
+    CompactByteListManager = new DiskCompactByteListManager(
+      this,
+      FixedByteBlockManager,
       CompactByteListBlockType,
       Fixed16ByteBlockType,
       Fixed32ByteBlockType,
@@ -114,7 +130,15 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
     SortedArrayOfLongFactory = SortedArrayManager.CreateFactory<long>(LongBlockType);
     FixedStringFactory = FixedStringManager.CreateFactory(CharBlockType);
     ImmutableStringFactory = ImmutableStringManager.CreateFactory(CharBlockType);
-    CompactListFactory = CompactListManager.CreateFactory();
+    CompactByteListFactory = CompactByteListManager.CreateFactory();
+    
+    SortedVarIntListManager = new DiskSortedVarIntListManager(
+      this, 
+      FixedByteBlockManager, 
+      CompactByteListManager, 
+      CompactByteListFactory
+    );
+    SortedVarIntListFactory = SortedVarIntListManager.CreateFactory();
   }
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -195,13 +219,19 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
 
   public DiskBTreeManager BTreeManager { get; set; }
   
-  public DiskCompactByteListManager CompactListManager { get; set; }
+  public FixedByteBlockManager FixedByteBlockManager { get; set; }
+
+  public DiskCompactByteListManager CompactByteListManager { get; set; }
+  
+  public DiskSortedVarIntListManager SortedVarIntListManager { get; set; }
 
   public DiskFixedStringFactory FixedStringFactory { get; }
 
   public DiskImmutableStringFactory ImmutableStringFactory { get; }
   
-  public DiskCompactByteListFactory CompactListFactory { get; }
+  public DiskCompactByteListFactory CompactByteListFactory { get; }
+  
+  public DiskSortedVarIntListFactory SortedVarIntListFactory { get; }
 
   public IList<BlockTypeMetadataBlock> BlockTypeMetadataBlocksList { get; set; }
 
@@ -284,7 +314,7 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
     }
   }
 
-  private void ReadBlockMetadataBlock(long address, out BlockMetadataBlock input)
+  public void ReadBlockMetadataBlock(long address, out BlockMetadataBlock input)
   {
     ReadBlock<BlockMetadataBlock>(address, out input);
   }
@@ -501,6 +531,7 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
       ReadBlockMetadataBlock(address, out BlockMetadataBlock freeBmb);
       btmb.FreeListHeadNode = freeBmb.NextBlock;
       WriteBlockTypeMetadataBlock(blockTypeIndex, ref btmb, true);
+      freeBmb.BlockTypeId = (short) blockTypeIndex;
       freeBmb.Free = 0;
       freeBmb.NextBlock = 0;
       WriteBlockMetadataBlock(address, ref freeBmb);
@@ -511,6 +542,7 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
       // If there are no free blocks, add a new one at the end of the file
       address = FileStream.Length;
       BlockMetadataBlock newBmb = default;
+      newBmb.BlockTypeId = (short) blockTypeIndex;
       newBmb.Free = 0;
       newBmb.NextBlock = 0;
       WriteBlockMetadataBlock(address, ref newBmb);

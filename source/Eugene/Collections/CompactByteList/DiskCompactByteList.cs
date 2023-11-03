@@ -6,8 +6,9 @@ public class DiskCompactByteList
   // Constructors
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
-  public DiskCompactByteList(DiskCompactByteListFactory factory, long address)
+  public DiskCompactByteList(FixedByteBlockManager fixedByteBlockManager, DiskCompactByteListFactory factory, long address)
   {
+    FixedByteBlockManager = fixedByteBlockManager;
     Factory = factory;
     Address = address;
   }
@@ -18,42 +19,22 @@ public class DiskCompactByteList
 
   public long Address { get; private set; }
 
+  public FixedByteBlockManager FixedByteBlockManager { get; }
+
   public DiskCompactByteListFactory Factory { get; }
 
   public IDiskBlockManager DiskBlockManager => Factory.DiskBlockManager;
   
   public short CompactByteListBlockTypeIndex => Factory.CompactByteListBlockTypeIndex;
   
-  public short Fixed16ByteBlockTypeIndex => Factory.Fixed16ByteBlockTypeIndex;
-
-  public short Fixed32ByteBlockTypeIndex => Factory.Fixed32ByteBlockTypeIndex;
-
-  public short Fixed64ByteBlockTypeIndex => Factory.Fixed64ByteBlockTypeIndex;
-
-  public short Fixed128ByteBlockTypeIndex => Factory.Fixed128ByteBlockTypeIndex;
-
-  public short Fixed256ByteBlockTypeIndex => Factory.Fixed256ByteBlockTypeIndex;
-
-  public short Fixed512ByteBlockTypeIndex => Factory.Fixed512ByteBlockTypeIndex;
-
-  public short Fixed1KByteBlockTypeIndex => Factory.Fixed1KBlockTypeIndex;
-
-  public short Fixed2KByteBlockTypeIndex => Factory.Fixed2KBlockTypeIndex;
-
-  public short Fixed4KByteBlockTypeIndex => Factory.Fixed4KBlockTypeIndex;
-
-  public short Fixed8KByteBlockTypeIndex => Factory.Fixed8KBlockTypeIndex;
-
-  public short Fixed16KByteBlockTypeIndex => Factory.Fixed16KBlockTypeIndex;
-  
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Private Static Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
-  private static List<FixedSizeBlockInfo> CompressBlocks(List<FixedSizeBlockInfo> blocks)
+  private static List<FixedSizeBlockInfo> CompressBlocks(IEnumerable<FixedSizeBlockInfo> blocks)
   {
-    List<FixedSizeBlockInfo> tempBlocks = blocks.Select(block => new FixedSizeBlockInfo(block.BlockSize, block.BytesStored)).ToList();
-    List<int> bytesToTransfer = new List<int>();
+    var tempBlocks = blocks.Select(block => new FixedSizeBlockInfo(block.BlockSize, block.BytesStored)).ToList();
+    var bytesToTransfer = new List<int>();
 
     for (int i = 0; i < tempBlocks.Count - 1; i++)
     {
@@ -97,101 +78,58 @@ public class DiskCompactByteList
     return tempBlocks;
   }
 
-  private static IFixedByteBlock CreateFixedByteBlock(int size)
-  {
-    switch (size)
-    {
-      case 16:    return new Fixed16ByteBlock();
-      case 32:    return new Fixed32ByteBlock();
-      case 64:    return new Fixed64ByteBlock();
-      case 128:   return new Fixed128ByteBlock();
-      case 256:   return new Fixed256ByteBlock();
-      case 512:   return new Fixed512ByteBlock();
-      case 1024:  return new Fixed1KByteBlock();
-      case 2048:  return new Fixed2KByteBlock();
-      case 4096:  return new Fixed4KByteBlock();
-      case 8192:  return new Fixed8KByteBlock();
-      case 16384: return new Fixed16KByteBlock();
-      default: throw new ArgumentOutOfRangeException("Expected a power of 2 from 16 to 16384");
-    }
-  }
-  
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Private Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
-
-  private long AppendFixedSizeBlock(IFixedByteBlock fixedByteBlock)
+  
+  private unsafe void AppendDataAsSeriesOfBlocks(ref CompactByteListBlock block, byte[] data, int length)
   {
-    switch (fixedByteBlock.Size)
+    List<FixedSizeBlockInfo> blockInfoList = AllocateBlocks(length);
+    int offset = 0;
+    IFixedByteBlock lastBlock = null;
+    long lastBlockAddress = 0;
+
+    foreach (FixedSizeBlockInfo blockInfo in blockInfoList)
     {
-      case 16:
+      IFixedByteBlock fixedByteBlock = FixedByteBlock.CreateFixedByteBlock(blockInfo.BlockSize);
+      Marshal.Copy(data, offset, (IntPtr) fixedByteBlock.DataPointer, blockInfo.BytesStored);
+      fixedByteBlock.NextAddress = 0;
+      fixedByteBlock.PreviousAddress = lastBlockAddress;
+      fixedByteBlock.BytesStored = (ushort) blockInfo.BytesStored;
+      long newBlockAddress = FixedByteBlockManager.AppendFixedSizeBlock(fixedByteBlock);
+      
+      if (block.TailAddress == 0)
+      {
+        // I need some helper functions to do this work so I don't have to repeat myself
+        // I need minor variations of this code but I don't want to copy/paste it
+        // Trying to think of a good way to organize the helper functions and what to name them ...
+        // I want a function named AppendFixedSizeBlock that does this logic here, but there is
+        // already a function with that name. We have a little bit of a name collision problem.
+        // What elese would be a good name
+        block.HeadAddress = newBlockAddress;
+        block.TailAddress = newBlockAddress;
+        block.Count += blockInfo.BytesStored;
+        DiskBlockManager.WriteDataBlock<CompactByteListBlock>(CompactByteListBlockTypeIndex, Address, ref block);
+        lastBlockAddress = newBlockAddress;
+      }
+      else
+      {
+        if (lastBlock != null)
         {
-          Fixed16ByteBlock typedBlock = (Fixed16ByteBlock) fixedByteBlock;
-          return DiskBlockManager.AppendDataBlock(Fixed16ByteBlockTypeIndex, ref typedBlock);
+          // lastBlock should always be non-null at this point, but the compiler
+          // doesn't seem to know that
+          lastBlock.NextAddress = newBlockAddress;
+          FixedByteBlockManager.WriteFixedSizeBlock(lastBlockAddress, lastBlock);
         }
+        block.TailAddress = newBlockAddress;
+        block.Count += blockInfo.BytesStored;
+        DiskBlockManager.WriteDataBlock<CompactByteListBlock>(CompactByteListBlockTypeIndex, Address, ref block);
+        lastBlockAddress = newBlockAddress;
+      }
       
-      case 32:
-        {
-          Fixed32ByteBlock typedBlock = (Fixed32ByteBlock) fixedByteBlock;
-          return DiskBlockManager.AppendDataBlock(Fixed32ByteBlockTypeIndex, ref typedBlock);
-        }  
-      
-      case 64:
-        {
-          Fixed64ByteBlock typedBlock = (Fixed64ByteBlock) fixedByteBlock;
-          return DiskBlockManager.AppendDataBlock(Fixed64ByteBlockTypeIndex, ref typedBlock);
-        }
-      
-      case 128:
-        {
-          Fixed128ByteBlock typedBlock = (Fixed128ByteBlock) fixedByteBlock;
-          return DiskBlockManager.AppendDataBlock(Fixed128ByteBlockTypeIndex, ref typedBlock);
-        } 
-      
-      case 256:
-        {
-          Fixed256ByteBlock typedBlock = (Fixed256ByteBlock) fixedByteBlock;
-          return DiskBlockManager.AppendDataBlock(Fixed256ByteBlockTypeIndex, ref typedBlock);
-        }
-      
-      case 512:
-        {
-          Fixed512ByteBlock typedBlock = (Fixed512ByteBlock) fixedByteBlock;
-          return DiskBlockManager.AppendDataBlock(Fixed512ByteBlockTypeIndex, ref typedBlock);
-        } 
-      
-      case 1024:
-        {
-          Fixed1KByteBlock typedBlock = (Fixed1KByteBlock) fixedByteBlock;
-          return DiskBlockManager.AppendDataBlock(Fixed1KByteBlockTypeIndex, ref typedBlock);
-        }  
-      
-      case 2048:
-        {
-          Fixed2KByteBlock typedBlock = (Fixed2KByteBlock) fixedByteBlock;
-          return DiskBlockManager.AppendDataBlock(Fixed2KByteBlockTypeIndex, ref typedBlock);
-        } 
-      
-      case 4096:
-        {
-          Fixed4KByteBlock typedBlock = (Fixed4KByteBlock) fixedByteBlock;
-          return DiskBlockManager.AppendDataBlock(Fixed4KByteBlockTypeIndex, ref typedBlock);
-        } 
-      
-      case 8192:
-        {
-          Fixed8KByteBlock typedBlock = (Fixed8KByteBlock) fixedByteBlock;
-          return DiskBlockManager.AppendDataBlock(Fixed8KByteBlockTypeIndex, ref typedBlock);
-        }
-      
-      case 16384:
-        {
-          Fixed16KByteBlock typedBlock = (Fixed16KByteBlock) fixedByteBlock;
-          return DiskBlockManager.AppendDataBlock(Fixed16KByteBlockTypeIndex, ref typedBlock);
-        }          
-      
-      default: throw new ArgumentOutOfRangeException("Expected fixedByteBlock.Size to be a power of 2 from 16 to 16384");
-    }
+      lastBlock = fixedByteBlock;
+      offset += blockInfo.BytesStored;
+    }    
   }
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -205,7 +143,7 @@ public class DiskCompactByteList
   
   public static List<FixedSizeBlockInfo> AllocateRawBlocks(int numberOfBytes)
   {
-    List<FixedSizeBlockInfo> blocksUsed = new List<FixedSizeBlockInfo>();
+    var blocksUsed = new List<FixedSizeBlockInfo>();
 
     while (numberOfBytes > 0)
     {
@@ -287,41 +225,65 @@ public class DiskCompactByteList
   // Public Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
-  public unsafe void AppendData(byte[] data)
+  public void EnsureLoaded()
+  {
+  }
+
+  public unsafe void AppendData(byte[] data, int length)
   {
     DiskBlockManager.ReadDataBlock<CompactByteListBlock>(CompactByteListBlockTypeIndex, Address, out CompactByteListBlock block);
     
-    // If there is a tail block, and the data can fit in it, then append the data to the end of the tail block
-    // If there is a tail block and the data can't fit into it, append a series of blocks to the end
-    // If there isn't a tail block, then append a series of blocks
-
     if (block.TailAddress == 0)
     {
-      List<FixedSizeBlockInfo> blockInfoList = AllocateBlocks(data.Length);
-      int offset = 0;
-
-      foreach (FixedSizeBlockInfo blockInfo in blockInfoList)
-      {
-        IFixedByteBlock fixedByteBlock = CreateFixedByteBlock(blockInfo.BlockSize);
-        Marshal.Copy(data, offset, (IntPtr) fixedByteBlock.DataPointer, blockInfo.BytesStored);
-        // Cases to handle
-        // 1) First block ever inserted into list
-        //    a) Set CompactByteListBlock's HeadAddress and TailAddress to the new block
-        //    b) Set the fixedByteBlock's PreviousAddress and Next Address to zero
-        //    c) Set the CompactByteListBlock's Count to the fixedByteBlock's BytesStored property
-        // 2) First block of this AppendData operation, but not the first block in the list (TailAddress != 0)
-        //    a) Read the fixedByteBlock referenced by CaompactByteListBlock's current TailAddress
-        //    b) Set CompactByteListBlock's TailAddress to the new block
-        //    c) Set previous blocks NextAddress to current block
-        //    d) Set current block's PreviousAddress to last block
-        AppendFixedSizeBlock(fixedByteBlock);
-        offset += blockInfo.BytesStored;
-      }
+      AppendDataAsSeriesOfBlocks(ref block, data, length);
     }
     else
     {
-      throw new NotImplementedException();
+      DiskBlockManager.ReadBlockMetadataBlock(block.TailAddress, out BlockMetadataBlock blockMetadataBlock);
+      int blockSize = FixedByteBlockManager.GetFixedByteBlockSize(blockMetadataBlock.BlockTypeId);
+      IFixedByteBlock fixedByteBlock = FixedByteBlock.CreateFixedByteBlock(blockSize);
+      FixedByteBlockManager.ReadFixedSizeBlock(block.TailAddress, fixedByteBlock);
+      if (fixedByteBlock.Size - fixedByteBlock.BytesStored < length)
+      {
+        // No room in the last block, so append new blocks as per usual
+        AppendDataAsSeriesOfBlocks(ref block, data, length);
+      }
+      else
+      {
+        // New data fits in the last block, so just write it there
+        Marshal.Copy(data, 0, (IntPtr) fixedByteBlock.DataPointer + fixedByteBlock.BytesStored, length);
+        fixedByteBlock.BytesStored += (ushort) length;
+        FixedByteBlockManager.WriteFixedSizeBlock(block.TailAddress, fixedByteBlock);
+      }
     }
+  }
+  
+  public IFixedByteBlock ReadBlock(long address)
+  {
+    DiskBlockManager.ReadBlockMetadataBlock(address, out BlockMetadataBlock blockMetadataBlock);
+    int blockSize = FixedByteBlockManager.GetFixedByteBlockSize(blockMetadataBlock.BlockTypeId);
+    IFixedByteBlock fixedByteBlock = FixedByteBlock.CreateFixedByteBlock(blockSize);
+    FixedByteBlockManager.ReadFixedSizeBlock(address, fixedByteBlock);
+
+    return fixedByteBlock;
+  }
+
+  public IFixedByteBlock ReadHeadBlock()
+  {
+    // TODO: Implement EnsureLoaded() and use that instead of loading the block
+    DiskBlockManager.ReadDataBlock<CompactByteListBlock>(CompactByteListBlockTypeIndex, Address, out CompactByteListBlock block);
+
+    if (block.HeadAddress == 0)
+    {
+      return null;
+    }
+
+    DiskBlockManager.ReadBlockMetadataBlock(block.HeadAddress, out BlockMetadataBlock blockMetadataBlock);
+    int blockSize = FixedByteBlockManager.GetFixedByteBlockSize(blockMetadataBlock.BlockTypeId);
+    IFixedByteBlock fixedByteBlock = FixedByteBlock.CreateFixedByteBlock(blockSize);
+    FixedByteBlockManager.ReadFixedSizeBlock(block.HeadAddress, fixedByteBlock);
+
+    return fixedByteBlock;
   }
   
   // /////////////////////////////////////////////////////////////////////////////////////////////

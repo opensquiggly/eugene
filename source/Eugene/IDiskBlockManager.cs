@@ -5,6 +5,7 @@ public interface IDiskBlockManager
   public short RegisterBlockType<TStruct>() where TStruct : struct;
   void CreateOrOpen(string filePath);
   void Flush();
+  public void ReadBlockMetadataBlock(long address, out BlockMetadataBlock input);
   public void ReadDataBlock<TStruct>(int blockTypeIndex, long address, out TStruct input) where TStruct : struct;
   public void WriteDataBlock<TStruct>(int blockTypeIndex, long address, ref TStruct input) where TStruct : struct;
   public long AppendDataBlock<TStruct>(int blockTypeIndex, ref TStruct input) where TStruct : struct;

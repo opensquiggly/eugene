@@ -8,6 +8,7 @@ public class DiskCompactByteListManager
 
   public DiskCompactByteListManager(
     IDiskBlockManager diskBlockManager, 
+    FixedByteBlockManager fixedByteBlockManager,
     short compactByteListBlockTypeIndex,
     short fixed16ByteBlockTypeIndex,
     short fixed32ByteBlockTypeIndex,
@@ -23,6 +24,7 @@ public class DiskCompactByteListManager
   )
   {
     DiskBlockManager = diskBlockManager;
+    FixedByteBlockManager = fixedByteBlockManager;
     CompactByteListBlockTypeIndex = compactByteListBlockTypeIndex;
     Fixed16ByteBlockTypeIndex = fixed16ByteBlockTypeIndex;
     Fixed32ByteBlockTypeIndex = fixed32ByteBlockTypeIndex;
@@ -43,6 +45,8 @@ public class DiskCompactByteListManager
 
   public IDiskBlockManager DiskBlockManager { get; }
   
+  public FixedByteBlockManager FixedByteBlockManager { get; }
+
   public short CompactByteListBlockTypeIndex { get; }
   
   public short Fixed16ByteBlockTypeIndex { get; }
@@ -73,6 +77,6 @@ public class DiskCompactByteListManager
 
   public DiskCompactByteListFactory CreateFactory()
   {
-    return new DiskCompactByteListFactory(this);
+    return new DiskCompactByteListFactory(FixedByteBlockManager, this);
   }  
 }
