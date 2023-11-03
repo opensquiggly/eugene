@@ -1,6 +1,6 @@
 namespace Eugene.Collections;
 
-public class DiskCompactByteListCursor : IEnumerator<byte> 
+public class DiskCompactByteListCursor : IEnumerator<byte>
 {
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Constructors
@@ -11,7 +11,7 @@ public class DiskCompactByteListCursor : IEnumerator<byte>
     List = list;
     Reset();
   }
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Private Properties
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -19,14 +19,8 @@ public class DiskCompactByteListCursor : IEnumerator<byte>
   private bool NavigatedPastBeginning { get; set; }
 
   private bool NavigatedPastEnd { get; set; }
-  
-  private unsafe byte CurrentItem
-  {
-    get
-    {
-      return CurrentBlock.DataPointer[CurrentIndex];
-    }
-  }
+
+  private unsafe byte CurrentItem => CurrentBlock.DataPointer[CurrentIndex];
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Properties
@@ -43,11 +37,11 @@ public class DiskCompactByteListCursor : IEnumerator<byte>
   public object Current => this.CurrentItem;
 
   public bool IsEmpty => false; // TODO: Implement this
-  
+
   public bool IsPastBeginning => IsEmpty || NavigatedPastBeginning;
 
   public bool IsPastEnd => IsEmpty || NavigatedPastEnd;
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -55,11 +49,11 @@ public class DiskCompactByteListCursor : IEnumerator<byte>
   public void Dispose()
   {
   }
-  
+
   public bool MoveNext()
   {
     List.EnsureLoaded();
-    
+
     if (NavigatedPastBeginning)
     {
       CurrentBlock = List.ReadHeadBlock();
@@ -85,7 +79,7 @@ public class DiskCompactByteListCursor : IEnumerator<byte>
       CurrentBlock = List.ReadBlock(CurrentBlock.NextAddress);
       NavigatedPastEnd = CurrentBlock.BytesStored == 0;
       CurrentIndex = 0;
-      return CurrentBlock.BytesStored > 0;      
+      return CurrentBlock.BytesStored > 0;
     }
 
     NavigatedPastEnd = true;
@@ -99,7 +93,7 @@ public class DiskCompactByteListCursor : IEnumerator<byte>
     NavigatedPastBeginning = true;
     NavigatedPastEnd = false;
   }
-  
+
   public void ResetToEnd()
   {
     NavigatedPastBeginning = false;

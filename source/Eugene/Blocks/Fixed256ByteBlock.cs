@@ -17,5 +17,5 @@ public unsafe struct Fixed256ByteBlock : IFixedByteBlock
         return ptr;
       }
     }
-  }  
+  }
 }

@@ -7,7 +7,7 @@ public class DiskSortedVarIntListManager
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
   public DiskSortedVarIntListManager(
-    IDiskBlockManager diskBlockManager, 
+    IDiskBlockManager diskBlockManager,
     FixedByteBlockManager fixedByteBlockManager,
     DiskCompactByteListManager compactByteListManager,
     DiskCompactByteListFactory compactByteListFactory
@@ -24,11 +24,11 @@ public class DiskSortedVarIntListManager
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
   public IDiskBlockManager DiskBlockManager { get; }
-  
+
   public FixedByteBlockManager FixedByteBlockManager { get; }
-  
+
   public DiskCompactByteListManager CompactByteListManager { get; }
-  
+
   public DiskCompactByteListFactory CompactByteListFactory { get; }
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -38,5 +38,5 @@ public class DiskSortedVarIntListManager
   public DiskSortedVarIntListFactory CreateFactory()
   {
     return new DiskSortedVarIntListFactory(this);
-  }  
+  }
 }

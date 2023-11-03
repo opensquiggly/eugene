@@ -12,7 +12,7 @@ public class DiskSortedVarIntList
     FixedByteBlockManager = fixedByteBlockManager;
     Factory = factory;
   }
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Properties
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -20,19 +20,19 @@ public class DiskSortedVarIntList
   public long Address => BaseList.Address;
 
   public FixedByteBlockManager FixedByteBlockManager { get; }
-  
-  public DiskCompactByteList BaseList { get; } 
+
+  public DiskCompactByteList BaseList { get; }
 
   public DiskSortedVarIntListFactory Factory { get; }
 
   public IDiskBlockManager DiskBlockManager => Factory.DiskBlockManager;
-  
+
   public short CompactByteListBlockTypeIndex => Factory.CompactByteListManager.CompactByteListBlockTypeIndex;
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Private Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
-  
+
   private int CalculateConvertedBytesSize(ulong value)
   {
     int size = 0;
@@ -52,7 +52,7 @@ public class DiskSortedVarIntList
     didOverflow = false;
     int currentOffset = startingOffset;
     byte[] output = output1;
-    
+
     do
     {
       if (currentOffset >= output.Length)
@@ -69,7 +69,7 @@ public class DiskSortedVarIntList
         }
       }
 
-      byte b = (byte)(value & 0x7F); // Take the 7 least significant bits
+      byte b = (byte) (value & 0x7F); // Take the 7 least significant bits
       value >>= 7; // Shift right by 7 bits
       if (value != 0) // If there are more bits to encode, set the continuation bit
       {
@@ -78,10 +78,10 @@ public class DiskSortedVarIntList
       output[currentOffset] = b;
       currentOffset++;
     } while (value != 0);
-    
+
     return currentOffset;
   }
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -106,7 +106,7 @@ public class DiskSortedVarIntList
       {
         throw new ArgumentOutOfRangeException("Expect values to be in sorted order");
       }
-      
+
       ulong currentDiffValue = val - lastValue;
       currentIndex = ConvertValueToBytes(currentDiffValue, mainBuffer, overflowBuffer, currentIndex, out bool didOverflow);
       if (didOverflow)

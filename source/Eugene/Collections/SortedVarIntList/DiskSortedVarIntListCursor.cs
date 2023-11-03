@@ -11,27 +11,27 @@ public class DiskSortedVarIntListCursor : IEnumerator<ulong>
     List = list;
     Reset();
   }
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Private Properties
   // /////////////////////////////////////////////////////////////////////////////////////////////
-  
+
   private DiskSortedVarIntList List { get; }
 
   private bool NavigatedPastBeginning { get; set; }
 
   private bool NavigatedPastEnd { get; set; }
-  
+
   private ulong LastValue { get; set; }
-  
+
   private ulong CurrentDiffValue { get; set; }
-  
+
   private ulong CurrentValue => LastValue + CurrentDiffValue;
-  
+
   private int CurrentIndex { get; set; }
 
   private IFixedByteBlock CurrentBlock { get; set; }
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Properties
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -41,11 +41,11 @@ public class DiskSortedVarIntListCursor : IEnumerator<ulong>
   public object Current => this.CurrentValue;
 
   public bool IsEmpty => false; // TODO: Implement this
-  
+
   public bool IsPastBeginning => IsEmpty || NavigatedPastBeginning;
 
   public bool IsPastEnd => IsEmpty || NavigatedPastEnd;
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Private Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -57,7 +57,7 @@ public class DiskSortedVarIntListCursor : IEnumerator<ulong>
       result = 0;
       return false;
     }
-    
+
     result = (CurrentIndex <= CurrentBlock.BytesStored - 1) ? CurrentBlock.DataPointer[CurrentIndex] : (byte) 0;
 
     if (CurrentIndex < CurrentBlock.BytesStored - 1)
@@ -71,12 +71,12 @@ public class DiskSortedVarIntListCursor : IEnumerator<ulong>
       CurrentBlock = null;
       return true;
     }
-    
+
     CurrentBlock = List.ReadBlock(CurrentBlock.NextAddress);
     CurrentIndex = 0;
     return true;
   }
-  
+
   private bool GetNextValueAndAdvanceIndex(out ulong result)
   {
     result = 0;
@@ -84,7 +84,7 @@ public class DiskSortedVarIntListCursor : IEnumerator<ulong>
 
     while (GetNextByteAndAdvanceIndex(out byte b))
     {
-      result |= (uint)((b & 0x7F) << shift);  // Take the 7 data bits and shift them into position
+      result |= (uint) ((b & 0x7F) << shift);  // Take the 7 data bits and shift them into position
       if ((b & 0x80) == 0)  // If the continuation bit is not set, we are done
       {
         return true;
@@ -94,7 +94,7 @@ public class DiskSortedVarIntListCursor : IEnumerator<ulong>
 
     return false;
   }
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -102,14 +102,14 @@ public class DiskSortedVarIntListCursor : IEnumerator<ulong>
   public void Dispose()
   {
   }
-  
+
   public bool MoveNext()
   {
     bool hasValue;
     ulong result;
-    
+
     List.EnsureLoaded();
-    
+
     if (NavigatedPastBeginning)
     {
       CurrentBlock = List.ReadHeadBlock();
@@ -134,7 +134,7 @@ public class DiskSortedVarIntListCursor : IEnumerator<ulong>
     {
       NavigatedPastEnd = true;
     }
-    
+
     return hasValue;
   }
 
@@ -147,7 +147,7 @@ public class DiskSortedVarIntListCursor : IEnumerator<ulong>
     LastValue = 0;
     CurrentDiffValue = 0;
   }
-  
+
   public void ResetToEnd()
   {
     NavigatedPastBeginning = false;

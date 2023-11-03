@@ -89,7 +89,7 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
     FixedStringManager = new DiskFixedStringManager(this, ArrayBlockType);
     ImmutableStringManager = new DiskImmutableStringManager(this, ArrayBlockType);
     LinkedListManager = new DiskLinkedListManager(this, LinkedListBlockType, LinkedListNodeBlockType);
-    
+
     FixedByteBlockManager = new FixedByteBlockManager(
       this,
       Fixed16ByteBlockType,
@@ -101,7 +101,7 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
       Fixed1KByteBlockType,
       Fixed2KByteBlockType,
       Fixed4KByteBlockType,
-      Fixed8KByteBlockType, 
+      Fixed8KByteBlockType,
       Fixed16KByteBlockType
     );
 
@@ -118,7 +118,7 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
       Fixed1KByteBlockType,
       Fixed2KByteBlockType,
       Fixed4KByteBlockType,
-      Fixed8KByteBlockType, 
+      Fixed8KByteBlockType,
       Fixed16KByteBlockType
     );
 
@@ -131,11 +131,11 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
     FixedStringFactory = FixedStringManager.CreateFactory(CharBlockType);
     ImmutableStringFactory = ImmutableStringManager.CreateFactory(CharBlockType);
     CompactByteListFactory = CompactByteListManager.CreateFactory();
-    
+
     SortedVarIntListManager = new DiskSortedVarIntListManager(
-      this, 
-      FixedByteBlockManager, 
-      CompactByteListManager, 
+      this,
+      FixedByteBlockManager,
+      CompactByteListManager,
       CompactByteListFactory
     );
     SortedVarIntListFactory = SortedVarIntListManager.CreateFactory();
@@ -170,29 +170,29 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
   private short LinkedListBlockType { get; set; }
 
   private short LinkedListNodeBlockType { get; set; }
-  
+
   private short CompactByteListBlockType { get; set; }
 
   public short Fixed16ByteBlockType { get; }
-  
+
   public short Fixed32ByteBlockType { get; }
-  
+
   public short Fixed64ByteBlockType { get; }
-  
+
   public short Fixed128ByteBlockType { get; }
-  
+
   public short Fixed256ByteBlockType { get; }
-  
+
   public short Fixed512ByteBlockType { get; }
-  
+
   public short Fixed1KByteBlockType { get; }
-  
+
   public short Fixed2KByteBlockType { get; }
-  
+
   public short Fixed4KByteBlockType { get; }
-  
+
   public short Fixed8KByteBlockType { get; }
-  
+
   public short Fixed16KByteBlockType { get; }
 
   private DiskFixedStringManager FixedStringManager { get; set; }
@@ -218,19 +218,19 @@ public class DiskBlockManager : IDiskBlockManager, IDisposable
   public DiskSortedArrayManager SortedArrayManager { get; set; }
 
   public DiskBTreeManager BTreeManager { get; set; }
-  
+
   public FixedByteBlockManager FixedByteBlockManager { get; set; }
 
   public DiskCompactByteListManager CompactByteListManager { get; set; }
-  
+
   public DiskSortedVarIntListManager SortedVarIntListManager { get; set; }
 
   public DiskFixedStringFactory FixedStringFactory { get; }
 
   public DiskImmutableStringFactory ImmutableStringFactory { get; }
-  
+
   public DiskCompactByteListFactory CompactByteListFactory { get; }
-  
+
   public DiskSortedVarIntListFactory SortedVarIntListFactory { get; }
 
   public IList<BlockTypeMetadataBlock> BlockTypeMetadataBlocksList { get; set; }

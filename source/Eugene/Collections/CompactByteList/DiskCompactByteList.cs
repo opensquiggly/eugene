@@ -12,7 +12,7 @@ public class DiskCompactByteList
     Factory = factory;
     Address = address;
   }
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Properties
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -24,9 +24,9 @@ public class DiskCompactByteList
   public DiskCompactByteListFactory Factory { get; }
 
   public IDiskBlockManager DiskBlockManager => Factory.DiskBlockManager;
-  
+
   public short CompactByteListBlockTypeIndex => Factory.CompactByteListBlockTypeIndex;
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Private Static Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -39,7 +39,7 @@ public class DiskCompactByteList
     for (int i = 0; i < tempBlocks.Count - 1; i++)
     {
       FixedSizeBlockInfo currentFixedSizeBlockInfo = tempBlocks[i];
-      
+
       // First pass: check if it's possible to reallocate all bytes from the current block
       int remainingBytes = currentFixedSizeBlockInfo.BytesStored;
       bytesToTransfer.Clear();
@@ -81,7 +81,7 @@ public class DiskCompactByteList
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Private Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
-  
+
   private unsafe void AppendDataAsSeriesOfBlocks(ref CompactByteListBlock block, byte[] data, int length)
   {
     List<FixedSizeBlockInfo> blockInfoList = AllocateBlocks(length);
@@ -97,7 +97,7 @@ public class DiskCompactByteList
       fixedByteBlock.PreviousAddress = lastBlockAddress;
       fixedByteBlock.BytesStored = (ushort) blockInfo.BytesStored;
       long newBlockAddress = FixedByteBlockManager.AppendFixedSizeBlock(fixedByteBlock);
-      
+
       if (block.TailAddress == 0)
       {
         // I need some helper functions to do this work so I don't have to repeat myself
@@ -126,10 +126,10 @@ public class DiskCompactByteList
         DiskBlockManager.WriteDataBlock<CompactByteListBlock>(CompactByteListBlockTypeIndex, Address, ref block);
         lastBlockAddress = newBlockAddress;
       }
-      
+
       lastBlock = fixedByteBlock;
       offset += blockInfo.BytesStored;
-    }    
+    }
   }
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -140,7 +140,7 @@ public class DiskCompactByteList
   {
     return CompressBlocks(AllocateRawBlocks(numberOfBytes));
   }
-  
+
   public static List<FixedSizeBlockInfo> AllocateRawBlocks(int numberOfBytes)
   {
     var blocksUsed = new List<FixedSizeBlockInfo>();
@@ -156,57 +156,57 @@ public class DiskCompactByteList
           blockSize = 16384;
           bytesToUse = 14336;
           break;
-        
+
         case >= 7168:
           blockSize = 8192;
           bytesToUse = 7168;
           break;
-        
+
         case >= 3584:
           blockSize = 4096;
           bytesToUse = 3584;
           break;
-        
+
         case >= 1792:
           blockSize = 2048;
           bytesToUse = 1792;
           break;
-        
+
         case >= 896:
           blockSize = 1024;
           bytesToUse = 896;
           break;
-        
+
         case >= 448:
           blockSize = 512;
           bytesToUse = 448;
           break;
-        
+
         case >= 224:
           blockSize = 256;
           bytesToUse = 224;
           break;
-        
+
         case >= 112:
           blockSize = 128;
           bytesToUse = 112;
           break;
-        
+
         case >= 56:
           blockSize = 64;
           bytesToUse = 56;
           break;
-        
+
         case >= 28:
           blockSize = 32;
           bytesToUse = 28;
           break;
-        
+
         case >= 16:
           blockSize = 16;
           bytesToUse = 16;
           break;
-        
+
         default:
           blockSize = 16;
           bytesToUse = numberOfBytes;
@@ -220,7 +220,7 @@ public class DiskCompactByteList
     blocksUsed.Reverse();
     return blocksUsed;
   }
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -232,7 +232,7 @@ public class DiskCompactByteList
   public unsafe void AppendData(byte[] data, int length)
   {
     DiskBlockManager.ReadDataBlock<CompactByteListBlock>(CompactByteListBlockTypeIndex, Address, out CompactByteListBlock block);
-    
+
     if (block.TailAddress == 0)
     {
       AppendDataAsSeriesOfBlocks(ref block, data, length);
@@ -257,7 +257,7 @@ public class DiskCompactByteList
       }
     }
   }
-  
+
   public IFixedByteBlock ReadBlock(long address)
   {
     DiskBlockManager.ReadBlockMetadataBlock(address, out BlockMetadataBlock blockMetadataBlock);
@@ -285,16 +285,18 @@ public class DiskCompactByteList
 
     return fixedByteBlock;
   }
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Inner Classes
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
-  public class FixedSizeBlockInfo {
+  public class FixedSizeBlockInfo
+  {
     public int BlockSize { get; set; }
     public int BytesStored { get; set; }
 
-    public FixedSizeBlockInfo(int blockSize, int bytesStored) {
+    public FixedSizeBlockInfo(int blockSize, int bytesStored)
+    {
       BlockSize = blockSize;
       BytesStored = bytesStored;
     }

@@ -17,13 +17,13 @@ public class DiskCompactByteListFactory
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
   public IDiskBlockManager DiskBlockManager => Manager.DiskBlockManager;
-  
+
   public FixedByteBlockManager FixedByteBlockManager { get; }
 
   public DiskCompactByteListManager Manager { get; }
 
   public short CompactByteListBlockTypeIndex => Manager.CompactByteListBlockTypeIndex;
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -54,5 +54,5 @@ public class DiskCompactByteListFactory
   public DiskCompactByteList LoadExisting(long address)
   {
     throw new NotImplementedException();
-  }  
+  }
 }

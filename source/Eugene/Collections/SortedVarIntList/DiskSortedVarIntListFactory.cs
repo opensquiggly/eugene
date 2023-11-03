@@ -10,11 +10,11 @@ public class DiskSortedVarIntListFactory
   {
     Manager = manager;
   }
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Properties
   // /////////////////////////////////////////////////////////////////////////////////////////////
-  
+
   public DiskSortedVarIntListManager Manager { get; }
 
   public IDiskBlockManager DiskBlockManager => Manager.DiskBlockManager;
@@ -22,7 +22,7 @@ public class DiskSortedVarIntListFactory
   public FixedByteBlockManager FixedByteBlockManager => Manager.FixedByteBlockManager;
 
   public DiskCompactByteListManager CompactByteListManager => Manager.CompactByteListManager;
-  
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -41,6 +41,6 @@ public class DiskSortedVarIntListFactory
   public DiskCompactByteList LoadExisting(long address)
   {
     throw new NotImplementedException();
-  }  
+  }
 }
 
