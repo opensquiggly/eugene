@@ -19,8 +19,6 @@ public class DiskSortedVarIntListFactory
 
   public IDiskBlockManager DiskBlockManager => Manager.DiskBlockManager;
 
-  public FixedByteBlockManager FixedByteBlockManager => Manager.FixedByteBlockManager;
-
   public DiskCompactByteListManager CompactByteListManager => Manager.CompactByteListManager;
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -38,9 +36,10 @@ public class DiskSortedVarIntListFactory
     throw new NotImplementedException();
   }
 
-  public DiskCompactByteList LoadExisting(long address)
+  public DiskSortedVarIntList LoadExisting(long address)
   {
-    throw new NotImplementedException();
+    DiskCompactByteList baseList = Manager.CompactByteListFactory.LoadExisting(address);
+    return new DiskSortedVarIntList(baseList, Manager.FixedByteBlockManager, this);
   }
 }
 

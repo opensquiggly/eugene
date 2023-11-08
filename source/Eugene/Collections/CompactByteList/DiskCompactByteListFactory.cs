@@ -53,6 +53,6 @@ public class DiskCompactByteListFactory
 
   public DiskCompactByteList LoadExisting(long address)
   {
-    throw new NotImplementedException();
+    return new DiskCompactByteList(FixedByteBlockManager, this, address);
   }
 }
