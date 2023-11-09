@@ -61,4 +61,38 @@ public class BasicTests
     dmb.Close();
     File.Delete("VarIntListTest1.dat");
   }
+
+  [TestMethod]
+  public void T002_AppendLargeList()
+  {
+    var dmb = new DiskBlockManager();
+    File.Delete("VarIntListTest2.dat");
+    dmb.CreateOrOpen("VarIntListTest2.dat");
+
+    DiskSortedVarIntList? list = dmb.SortedVarIntListFactory.AppendNew();
+    list.Address.Should().NotBe(0);
+
+    ulong[] data = new ulong[5000];
+    var random = new Random();
+
+    ulong lastValue = 0;
+    for (int x = 0; x < 5000; x++)
+    {
+      ulong newValue = lastValue + (ulong) random.Next(1, 1000000);
+      data[x] = newValue;
+      list.AppendData(new[] { newValue });
+      lastValue = newValue;
+    }
+
+    int index = 0;
+    var cursor = new DiskSortedVarIntListCursor(list);
+    while (cursor.MoveNext())
+    {
+      ulong currentValue = (ulong) cursor.Current;
+      currentValue.Should().Be(data[index], $"Wrong value at index={index}");
+      index++;
+    }
+
+    index.Should().Be(5000);
+  }
 }

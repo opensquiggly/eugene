@@ -14,6 +14,16 @@ public class DiskSortedVarIntList
   }
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
+  // Private Properties
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+
+  private bool IsLoaded { get; set; } = false;
+
+  private bool IsInitializing { get; set; } = false;
+
+  private ulong LastValue { get; set; } = 0;
+
+  // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Properties
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -88,12 +98,31 @@ public class DiskSortedVarIntList
 
   public void EnsureLoaded()
   {
-    BaseList.EnsureLoaded();
+    if (!IsLoaded && !IsInitializing)
+    {
+      BaseList.EnsureLoaded();
+
+      if (!IsInitializing)
+      {
+        IsInitializing = true;
+        var cursor = new DiskSortedVarIntListCursor(this);
+        cursor.Reset();
+        LastValue = 0;
+        while (cursor.MoveNext())
+        {
+          LastValue = (cursor.Current == null) ? 0L : (ulong) cursor.Current;
+        }
+      }
+
+      IsInitializing = false;
+      IsLoaded = true;
+    }
   }
 
-  public void AppendData(ulong[] data)
+  public void AppendData(IEnumerable<ulong> data)
   {
-    ulong lastValue = 0;
+    EnsureLoaded();
+
     byte[] buffer1 = new byte[15360]; // 15/16ths of 16384
     byte[] buffer2 = new byte[15360];
     byte[] mainBuffer = buffer1;
@@ -102,19 +131,19 @@ public class DiskSortedVarIntList
 
     foreach (ulong val in data)
     {
-      if (val < lastValue)
+      if (val < LastValue)
       {
         throw new ArgumentOutOfRangeException("Expect values to be in sorted order");
       }
 
-      ulong currentDiffValue = val - lastValue;
+      ulong currentDiffValue = val - LastValue;
       currentIndex = ConvertValueToBytes(currentDiffValue, mainBuffer, overflowBuffer, currentIndex, out bool didOverflow);
       if (didOverflow)
       {
         BaseList.AppendData(mainBuffer, mainBuffer.Length);
         (mainBuffer, overflowBuffer) = (overflowBuffer, mainBuffer);
       }
-      lastValue = val;
+      LastValue = val;
     }
 
     if (currentIndex > 0)

@@ -152,4 +152,36 @@ public class BasicTests
   public void T003_AppendTest()
   {
   }
+
+  [TestMethod]
+  public void T004_MultipleSmallAppends()
+  {
+    var dmb = new DiskBlockManager();
+    File.Delete("CompactByteListTest4.dat");
+    dmb.CreateOrOpen("CompactByteListTest4.dat");
+
+    DiskCompactByteList? list = dmb.CompactByteListFactory.AppendNew();
+    list.Address.Should().NotBe(0);
+
+    byte[] data = new byte[15000];
+    var random = new Random();
+
+    for (int x = 0; x < 15000; x++)
+    {
+      byte newValue = (byte) random.Next(0, 255);
+      data[x] = newValue;
+      list.AppendData(new[] { newValue }, 1);
+    }
+
+    int index = 0;
+    var cursor = new DiskCompactByteListCursor(list);
+    while (cursor.MoveNext())
+    {
+      byte currentValue = (byte) cursor.Current;
+      currentValue.Should().Be(data[index], $"Wrong value at index={index}");
+      index++;
+    }
+
+    index.Should().Be(15000);
+  }
 }
