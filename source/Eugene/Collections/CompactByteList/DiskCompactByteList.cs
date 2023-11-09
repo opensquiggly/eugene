@@ -14,6 +14,18 @@ public class DiskCompactByteList
   }
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
+  // Private Member Variables
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+
+  private bool IsLoaded { get; set; } = false;
+
+  private CompactByteListBlock _listBlock = default;
+
+  private IFixedByteBlock HeadBlock { get; set; } = null;
+
+  private IFixedByteBlock TailBlock { get; set; } = null;
+
+  // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Properties
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -82,52 +94,35 @@ public class DiskCompactByteList
   // Private Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
-  private unsafe void AppendDataAsSeriesOfBlocks(ref CompactByteListBlock block, byte[] data, int length)
+  private unsafe void AppendDataAsSeriesOfBlocks(byte[] data, int length)
   {
     List<FixedSizeBlockInfo> blockInfoList = AllocateBlocks(length);
     int offset = 0;
-    IFixedByteBlock lastBlock = null;
-    long lastBlockAddress = 0;
 
     foreach (FixedSizeBlockInfo blockInfo in blockInfoList)
     {
       IFixedByteBlock fixedByteBlock = FixedByteBlock.CreateFixedByteBlock(blockInfo.BlockSize);
       Marshal.Copy(data, offset, (IntPtr) fixedByteBlock.DataPointer, blockInfo.BytesStored);
       fixedByteBlock.NextAddress = 0;
-      fixedByteBlock.PreviousAddress = lastBlockAddress;
+      fixedByteBlock.PreviousAddress = _listBlock.TailAddress;
       fixedByteBlock.BytesStored = (ushort) blockInfo.BytesStored;
       long newBlockAddress = FixedByteBlockManager.AppendFixedSizeBlock(fixedByteBlock);
 
-      if (block.TailAddress == 0)
+      if (TailBlock == null)
       {
-        // I need some helper functions to do this work so I don't have to repeat myself
-        // I need minor variations of this code but I don't want to copy/paste it
-        // Trying to think of a good way to organize the helper functions and what to name them ...
-        // I want a function named AppendFixedSizeBlock that does this logic here, but there is
-        // already a function with that name. We have a little bit of a name collision problem.
-        // What elese would be a good name
-        block.HeadAddress = newBlockAddress;
-        block.TailAddress = newBlockAddress;
-        block.Count += blockInfo.BytesStored;
-        DiskBlockManager.WriteDataBlock<CompactByteListBlock>(CompactByteListBlockTypeIndex, Address, ref block);
-        lastBlockAddress = newBlockAddress;
+        _listBlock.HeadAddress = newBlockAddress;
+        _listBlock.TailAddress = newBlockAddress;
       }
       else
       {
-        if (lastBlock != null)
-        {
-          // lastBlock should always be non-null at this point, but the compiler
-          // doesn't seem to know that
-          lastBlock.NextAddress = newBlockAddress;
-          FixedByteBlockManager.WriteFixedSizeBlock(lastBlockAddress, lastBlock);
-        }
-        block.TailAddress = newBlockAddress;
-        block.Count += blockInfo.BytesStored;
-        DiskBlockManager.WriteDataBlock<CompactByteListBlock>(CompactByteListBlockTypeIndex, Address, ref block);
-        lastBlockAddress = newBlockAddress;
+        TailBlock.NextAddress = newBlockAddress;
+        FixedByteBlockManager.WriteFixedSizeBlock(_listBlock.TailAddress, TailBlock);
+        _listBlock.TailAddress = newBlockAddress;
       }
 
-      lastBlock = fixedByteBlock;
+      _listBlock.Count += blockInfo.BytesStored;
+      DiskBlockManager.WriteDataBlock<CompactByteListBlock>(CompactByteListBlockTypeIndex, Address, ref _listBlock);
+      TailBlock = fixedByteBlock;
       offset += blockInfo.BytesStored;
     }
   }
@@ -227,33 +222,45 @@ public class DiskCompactByteList
 
   public void EnsureLoaded()
   {
+    if (!IsLoaded)
+    {
+      DiskBlockManager.ReadDataBlock<CompactByteListBlock>(CompactByteListBlockTypeIndex, Address, out _listBlock);
+
+      if (_listBlock.HeadAddress != 0)
+      {
+        HeadBlock = ReadBlock(_listBlock.HeadAddress);
+      }
+
+      if (_listBlock.TailAddress != 0)
+      {
+        TailBlock = ReadBlock(_listBlock.TailAddress);
+      }
+
+      IsLoaded = true;
+    }
   }
 
   public unsafe void AppendData(byte[] data, int length)
   {
-    DiskBlockManager.ReadDataBlock<CompactByteListBlock>(CompactByteListBlockTypeIndex, Address, out CompactByteListBlock block);
+    EnsureLoaded();
 
-    if (block.TailAddress == 0)
+    if (TailBlock == null)
     {
-      AppendDataAsSeriesOfBlocks(ref block, data, length);
+      AppendDataAsSeriesOfBlocks(data, length);
     }
     else
     {
-      DiskBlockManager.ReadBlockMetadataBlock(block.TailAddress, out BlockMetadataBlock blockMetadataBlock);
-      int blockSize = FixedByteBlockManager.GetFixedByteBlockSize(blockMetadataBlock.BlockTypeId);
-      IFixedByteBlock fixedByteBlock = FixedByteBlock.CreateFixedByteBlock(blockSize);
-      FixedByteBlockManager.ReadFixedSizeBlock(block.TailAddress, fixedByteBlock);
-      if (fixedByteBlock.Size - fixedByteBlock.BytesStored < length)
+      if (TailBlock.Size - TailBlock.BytesStored < length)
       {
         // No room in the last block, so append new blocks as per usual
-        AppendDataAsSeriesOfBlocks(ref block, data, length);
+        AppendDataAsSeriesOfBlocks(data, length);
       }
       else
       {
         // New data fits in the last block, so just write it there
-        Marshal.Copy(data, 0, (IntPtr) fixedByteBlock.DataPointer + fixedByteBlock.BytesStored, length);
-        fixedByteBlock.BytesStored += (ushort) length;
-        FixedByteBlockManager.WriteFixedSizeBlock(block.TailAddress, fixedByteBlock);
+        Marshal.Copy(data, 0, (IntPtr) TailBlock.DataPointer + TailBlock.BytesStored, length);
+        TailBlock.BytesStored += (ushort) length;
+        FixedByteBlockManager.WriteFixedSizeBlock(_listBlock.TailAddress, TailBlock);
       }
     }
   }
