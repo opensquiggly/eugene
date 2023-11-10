@@ -1,6 +1,6 @@
 namespace Eugene.Collections;
 
-public class DiskSortedVarIntList
+public class DiskSortedVarIntList : IFastEnumerable<IFastEnumerator<ulong, long>, ulong, long>
 {
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Constructors
@@ -160,5 +160,20 @@ public class DiskSortedVarIntList
   public IFixedByteBlock ReadHeadBlock()
   {
     return BaseList.ReadHeadBlock();
+  }
+
+  public IFastEnumerator<ulong, long> GetFastEnumerator()
+  {
+    return new DiskSortedVarIntListCursor(this);
+  }
+
+  public IEnumerator<ulong> GetEnumerator()
+  {
+    return new DiskSortedVarIntListCursor(this);
+  }
+
+  IEnumerator IEnumerable.GetEnumerator()
+  {
+    return GetEnumerator();
   }
 }

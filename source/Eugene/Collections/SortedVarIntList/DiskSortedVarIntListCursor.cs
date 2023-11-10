@@ -1,6 +1,6 @@
 namespace Eugene.Collections;
 
-public class DiskSortedVarIntListCursor : IEnumerator<ulong>
+public class DiskSortedVarIntListCursor : IFastEnumerator<ulong, long>
 {
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Constructors
@@ -28,7 +28,7 @@ public class DiskSortedVarIntListCursor : IEnumerator<ulong>
 
   private ulong CurrentValue => LastValue + CurrentDiffValue;
 
-  private int CurrentIndex { get; set; }
+  private long CurrentIndex { get; set; }
 
   private IFixedByteBlock CurrentBlock { get; set; }
 
@@ -40,11 +40,15 @@ public class DiskSortedVarIntListCursor : IEnumerator<ulong>
 
   public object Current => this.CurrentValue;
 
-  public bool IsEmpty => false; // TODO: Implement this
+  public bool IsEmpty { get; private set; } = false;
 
   public bool IsPastBeginning => IsEmpty || NavigatedPastBeginning;
 
   public bool IsPastEnd => IsEmpty || NavigatedPastEnd;
+
+  public ulong CurrentKey => CurrentValue;
+
+  public  long CurrentData => CurrentIndex;
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Private Methods
@@ -116,6 +120,7 @@ public class DiskSortedVarIntListCursor : IEnumerator<ulong>
       LastValue = 0;
       CurrentIndex = 0;
       hasValue = GetNextValueAndAdvanceIndex(out result);
+      IsEmpty = !hasValue;
       CurrentDiffValue = result;
       NavigatedPastBeginning = false;
       return hasValue;
@@ -138,12 +143,31 @@ public class DiskSortedVarIntListCursor : IEnumerator<ulong>
     return hasValue;
   }
 
+  public bool MoveUntilGreaterThanOrEqual(ulong target)
+  {
+    if (CurrentValue >= target)
+    {
+      return true;
+    }
+
+    while (MoveNext())
+    {
+      if (CurrentValue >= target)
+      {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   public void Reset()
   {
     CurrentBlock = null;
     CurrentIndex = -1;
     NavigatedPastBeginning = true;
     NavigatedPastEnd = false;
+    IsEmpty = false;
     LastValue = 0;
     CurrentDiffValue = 0;
   }
