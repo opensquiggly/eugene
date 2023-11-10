@@ -48,7 +48,7 @@ public class DiskSortedVarIntListCursor : IFastEnumerator<ulong, long>
 
   public ulong CurrentKey => CurrentValue;
 
-  public  long CurrentData => CurrentIndex;
+  public long CurrentData => CurrentIndex;
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Private Methods
