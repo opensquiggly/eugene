@@ -447,7 +447,7 @@ public class DiskBTreeNode<TKey, TData>
     }
   }
 
-  public bool TryFind(TKey key, out TData data)
+  public bool TryFind(TKey key, out TData data, out DiskBTreeNode<TKey, TData> node, out int nodeIndex)
   {
     int index;
     EnsureLoaded();
@@ -458,10 +458,14 @@ public class DiskBTreeNode<TKey, TData>
       if (index >= 0)
       {
         data = DataArray[index];
+        node = this;
+        nodeIndex = index;
         return true;
       }
 
       data = default;
+      node = null;
+      nodeIndex = -1;
       return false;
     }
 
@@ -474,7 +478,13 @@ public class DiskBTreeNode<TKey, TData>
     // Recurse into child node to find the leaf node
     DiskBTreeNode<TKey, TData> childNode = NodeFactory.LoadExisting(BTree, ChildrenArray[index]);
     childNode.EnsureLoaded();
-    return childNode.TryFind(key, out data);
+    return childNode.TryFind(key, out data, out node, out nodeIndex);
+  }
+
+  public void ReplaceDataAtIndex(TData data, int index)
+  {
+    DataArray[index] = data;
+    DiskBlockManager.WriteDataBlockArrayEntry(this.NodeBlockTypeIndex, this.Address, index, ref data);
   }
 
   public void Print()

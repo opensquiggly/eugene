@@ -178,9 +178,9 @@ public class DiskBTree<TKey, TData> : IFastEnumerable<IFastEnumerator<TKey, TDat
     RootNode.Print();
   }
 
-  public bool TryFind(TKey key, out TData data)
+  public bool TryFind(TKey key, out TData data, out DiskBTreeNode<TKey, TData> node, out int nodeIndex)
   {
     EnsureLoaded();
-    return RootNode.TryFind(key, out data);
+    return RootNode.TryFind(key, out data, out node, out nodeIndex);
   }
 }
