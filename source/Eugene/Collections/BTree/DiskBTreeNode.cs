@@ -79,7 +79,7 @@ public class DiskBTreeNode<TKey, TData>
     get
     {
       EnsureLoaded();
-      return this.DataOrChildrenAddress;
+      return _nodeBlock.DataOrChildrenAddress;
     }
   }
 
