@@ -484,7 +484,7 @@ public class DiskBTreeNode<TKey, TData>
   public void ReplaceDataAtIndex(TData data, int index)
   {
     DataArray[index] = data;
-    DiskBlockManager.WriteDataBlockArrayEntry(this.NodeFactory.DataBlockTypeIndex, this.DataOrChildrenAddress, index, ref data);
+    DiskBlockManager.WriteDataBlockArrayEntry<TData>(this.NodeFactory.DataBlockTypeIndex, this.DataOrChildrenAddress, index, ref data);
   }
 
   public void Print()
