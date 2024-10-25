@@ -48,7 +48,7 @@ public class DiskBTreeFactory<TKey, TData>
   // Public Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
-  public DiskBTree<TKey, TData> AppendNew(short nodeSize)
+  public virtual DiskBTree<TKey, TData> AppendNew(short nodeSize)
   {
     // Create a placeholder for the BTree so we can pass the tree to
     // NodeFactory.AppendNew(). We do some fixups later.
@@ -71,7 +71,7 @@ public class DiskBTreeFactory<TKey, TData>
     return result;
   }
 
-  public DiskBTree<TKey, TData> LoadExisting(long address)
+  public virtual DiskBTree<TKey, TData> LoadExisting(long address)
   {
     return new DiskBTree<TKey, TData>(this, address);
   }
