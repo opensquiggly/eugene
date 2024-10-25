@@ -9,7 +9,7 @@
     <RepositoryUrl>https://github.com/opensquiggly/eugene.git</RepositoryUrl>
     <PackageProjectUrl>https://github.com/opensquiggly/eugene</PackageProjectUrl>
     <PackageTags>OpenSquiggly; Eugene; DataStructure; Data; Structure; Disk; Persistence; Persistent; Array; Arrays; LinkedList; LinkedLists; ArrayList; ArrayLists; Hash; HashTable; HashTables; Table; Tables; Binary; Tree; Trees; BinaryTree; BinaryTrees; BTree; BTrees; BPlusTree; BPlusTrees; TriTree; TrieTrees; Zoekt; Spinach; Popeye;</PackageTags>
-    <PackageVersion>1.0.1-alpha.20</PackageVersion>
+    <PackageVersion>1.0.1-alpha.21</PackageVersion>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageIcon>Logo.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
