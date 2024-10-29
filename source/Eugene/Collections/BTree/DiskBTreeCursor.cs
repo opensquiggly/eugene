@@ -200,6 +200,8 @@ public class DiskBTreeCursor<TKey, TData> : IDictionaryCursor<TKey, TData>
     }
 
     node.EnsureLoaded();
+    NavigatedPastBeginning = false;
+    NavigatedPastEnd = false;
     CurrentNode = node;
     CurrentIndex = index;
     return true;
