@@ -65,7 +65,7 @@ public class DiskBTreeCursor<TKey, TData> : IDictionaryCursor<TKey, TData>
   {
     get
     {
-      if (IsPastBeginning || IsPastEnd || CurrentIndex < 0 || CurrentIndex > CurrentNode.DataCount - 1)
+      if (!IsPastBeginning || IsPastEnd || CurrentIndex < 0 || CurrentIndex > CurrentNode.DataCount - 1)
       {
         throw new IndexOutOfRangeException();
       }
