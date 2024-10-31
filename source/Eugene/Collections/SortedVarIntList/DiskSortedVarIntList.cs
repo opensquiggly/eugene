@@ -167,7 +167,7 @@ public class DiskSortedVarIntList : IFastEnumerable<IFastEnumerator<ulong, long>
     return new DiskSortedVarIntListCursor(this);
   }
 
-  public IEnumerator<ulong> GetEnumerator()
+  public IEnumerator<long> GetEnumerator()
   {
     return new DiskSortedVarIntListCursor(this);
   }

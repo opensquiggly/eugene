@@ -33,7 +33,7 @@ public class FastIntersectEnumerable<TKey, TData> : IFastIntersectEnumerable<TKe
     return new FastIntersectEnumerator<TKey, TData>(Enumerable1, Enumerable2);
   }
 
-  public IEnumerator<TKey> GetEnumerator()
+  public IEnumerator<TData> GetEnumerator()
   {
     return new FastIntersectEnumerator<TKey, TData>(Enumerable1, Enumerable2);
   }

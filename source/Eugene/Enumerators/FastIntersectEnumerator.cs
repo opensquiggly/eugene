@@ -30,7 +30,7 @@ public class FastIntersectEnumerator<TKey, TData> : IFastIntersectEnumerator<TKe
   // Public Properties
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
-  public TKey Current => CurrentKey;
+  public TData Current => CurrentData;
 
   public TKey CurrentKey => Enumerator1.CurrentKey;
 
