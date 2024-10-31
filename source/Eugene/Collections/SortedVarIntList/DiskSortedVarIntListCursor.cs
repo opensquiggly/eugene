@@ -36,7 +36,7 @@ public class DiskSortedVarIntListCursor : IFastEnumerator<ulong, long>
   // Public Properties
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
-  unsafe ulong IEnumerator<ulong>.Current => this.CurrentValue;
+  unsafe long IEnumerator<long>.Current => this.CurrentData;
 
   public object Current => this.CurrentValue;
 

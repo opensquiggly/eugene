@@ -39,7 +39,7 @@ public class FastUnionEnumerator<TKey, TData> : IFastUnionEnumerator<TKey, TData
   // Public Properties
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
-  public TKey Current => CurrentKey;
+  public TData Current => CurrentData;
 
   public TKey CurrentKey => CurrentEnumerator.CurrentKey;
 

@@ -111,7 +111,7 @@ public class DiskBTree<TKey, TData> : IFastEnumerable<IFastEnumerator<TKey, TDat
     return RootNode.FindFirstGreaterThanOrEqual(key);
   }
 
-  public IEnumerator<TKey> GetEnumerator()
+  public IEnumerator<TData> GetEnumerator()
   {
     return new DiskBTreeCursor<TKey, TData>(this);
   }

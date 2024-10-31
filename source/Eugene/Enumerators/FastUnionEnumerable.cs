@@ -33,7 +33,7 @@ public class FastUnionEnumerable<TKey, TData> : IFastUnionEnumerable<TKey, TData
     return new FastUnionEnumerator<TKey, TData>(Enumerable1, Enumerable2);
   }
 
-  public IEnumerator<TKey> GetEnumerator()
+  public IEnumerator<TData> GetEnumerator()
   {
     return new FastUnionEnumerator<TKey, TData>(Enumerable1, Enumerable2);
   }
