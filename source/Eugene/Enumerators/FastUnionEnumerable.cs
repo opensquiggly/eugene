@@ -9,11 +9,13 @@ public class FastUnionEnumerable<TKey, TData> : IFastUnionEnumerable<TKey, TData
 
   public FastUnionEnumerable(
     IFastEnumerable<IFastEnumerator<TKey, TData>, TKey, TData> enumerable1,
-    IFastEnumerable<IFastEnumerator<TKey, TData>, TKey, TData> enumerable2
+    IFastEnumerable<IFastEnumerator<TKey, TData>, TKey, TData> enumerable2,
+    Func<TKey, TData, TKey, TData, int> comparer = null
   )
   {
     Enumerable1 = enumerable1;
     Enumerable2 = enumerable2;
+    Comparer = comparer;
   }
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -24,18 +26,20 @@ public class FastUnionEnumerable<TKey, TData> : IFastUnionEnumerable<TKey, TData
 
   private IFastEnumerable<IFastEnumerator<TKey, TData>, TKey, TData> Enumerable2 { get; }
 
+  private Func<TKey, TData, TKey, TData, int> Comparer { get; }
+
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Methods
   // /////////////////////////////////////////////////////////////////////////////////////////////
 
   public IFastUnionEnumerator<TKey, TData> GetFastEnumerator()
   {
-    return new FastUnionEnumerator<TKey, TData>(Enumerable1, Enumerable2);
+    return new FastUnionEnumerator<TKey, TData>(Enumerable1, Enumerable2, Comparer);
   }
 
   public IEnumerator<TData> GetEnumerator()
   {
-    return new FastUnionEnumerator<TKey, TData>(Enumerable1, Enumerable2);
+    return new FastUnionEnumerator<TKey, TData>(Enumerable1, Enumerable2, Comparer);
   }
 
   IEnumerator IEnumerable.GetEnumerator()
