@@ -9,11 +9,13 @@ public class FastUnionEnumerator<TKey, TData> : IFastUnionEnumerator<TKey, TData
 
   public FastUnionEnumerator(
     IFastEnumerable<IFastEnumerator<TKey, TData>, TKey, TData> enumerable1,
-    IFastEnumerable<IFastEnumerator<TKey, TData>, TKey, TData> enumerable2
+    IFastEnumerable<IFastEnumerator<TKey, TData>, TKey, TData> enumerable2,
+    Func<TKey, TData, TKey, TData, int> comparer = null
   )
   {
     Enumerator1 = enumerable1.GetFastEnumerator();
     Enumerator2 = enumerable2.GetFastEnumerator();
+    Comparer = comparer;
     Reset();
   }
 
@@ -24,6 +26,8 @@ public class FastUnionEnumerator<TKey, TData> : IFastUnionEnumerator<TKey, TData
   private IFastEnumerator<TKey, TData> Enumerator1 { get; }
 
   private IFastEnumerator<TKey, TData> Enumerator2 { get; }
+
+  private Func<TKey, TData, TKey, TData, int> Comparer { get; }
 
   private IFastEnumerator<TKey, TData> CurrentEnumerator { get; set; }
 
@@ -44,6 +48,15 @@ public class FastUnionEnumerator<TKey, TData> : IFastUnionEnumerator<TKey, TData
   public TKey CurrentKey => CurrentEnumerator.CurrentKey;
 
   public TData CurrentData => CurrentEnumerator.CurrentData;
+
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+  // Private Methods
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+
+  private int Compare(TKey key1, TData data1, TKey key2, TData data2)
+  {
+    return Comparer?.Invoke(key1, data1, key2, data2) ?? key1.CompareTo(key2);
+  }
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Methods
@@ -74,7 +87,12 @@ public class FastUnionEnumerator<TKey, TData> : IFastUnionEnumerator<TKey, TData
 
     if (HasNextValue1 && HasNextValue2)
     {
-      int comparison = Enumerator1.CurrentKey.CompareTo(Enumerator2.CurrentKey);
+      int comparison = Compare(
+        Enumerator1.CurrentKey,
+        Enumerator1.CurrentData,
+        Enumerator2.CurrentKey,
+        Enumerator2.CurrentData
+      );
 
       if (comparison <= 0)
       {
@@ -110,7 +128,12 @@ public class FastUnionEnumerator<TKey, TData> : IFastUnionEnumerator<TKey, TData
 
     if (HasNextValue1 && HasNextValue2)
     {
-      int comparison = Enumerator1.CurrentKey.CompareTo(Enumerator2.CurrentKey);
+      int comparison = Compare(
+        Enumerator1.CurrentKey,
+        Enumerator1.CurrentData,
+        Enumerator2.CurrentKey,
+        Enumerator2.CurrentData
+      );
 
       if (comparison <= 0)
       {

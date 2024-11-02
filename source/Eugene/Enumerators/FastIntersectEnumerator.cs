@@ -9,11 +9,13 @@ public class FastIntersectEnumerator<TKey, TData> : IFastIntersectEnumerator<TKe
 
   public FastIntersectEnumerator(
     IFastEnumerable<IFastEnumerator<TKey, TData>, TKey, TData> enumerable1,
-    IFastEnumerable<IFastEnumerator<TKey, TData>, TKey, TData> enumerable2
+    IFastEnumerable<IFastEnumerator<TKey, TData>, TKey, TData> enumerable2,
+    Func<TKey, TData, TKey, TData, int> comparer = null
   )
   {
     Enumerator1 = enumerable1.GetFastEnumerator();
     Enumerator2 = enumerable2.GetFastEnumerator();
+    Comparer = comparer;
   }
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
@@ -25,6 +27,8 @@ public class FastIntersectEnumerator<TKey, TData> : IFastIntersectEnumerator<TKe
   private IFastEnumerator<TKey, TData> Enumerator2 { get; }
 
   object IEnumerator.Current => CurrentKey;
+
+  private Func<TKey, TData, TKey, TData, int> Comparer { get; }
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Properties
@@ -39,6 +43,15 @@ public class FastIntersectEnumerator<TKey, TData> : IFastIntersectEnumerator<TKe
   public TData CurrentData1 => Enumerator1.CurrentData;
 
   public TData CurrentData2 => Enumerator2.CurrentData;
+
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+  // Private Methods
+  // /////////////////////////////////////////////////////////////////////////////////////////////
+
+  private int Compare(TKey key1, TData data1, TKey key2, TData data2)
+  {
+    return Comparer?.Invoke(key1, data1, key2, data2) ?? key1.CompareTo(key2);
+  }
 
   // /////////////////////////////////////////////////////////////////////////////////////////////
   // Public Methods
@@ -57,7 +70,12 @@ public class FastIntersectEnumerator<TKey, TData> : IFastIntersectEnumerator<TKe
 
     while (hasValue1 && hasValue2)
     {
-      int comparison = Enumerator1.CurrentKey.CompareTo(Enumerator2.CurrentKey);
+      int comparison = Compare(
+        Enumerator1.CurrentKey,
+        Enumerator1.CurrentData,
+        Enumerator2.CurrentKey,
+        Enumerator2.CurrentData
+      );
 
       if (comparison < 0)
       {
@@ -83,7 +101,12 @@ public class FastIntersectEnumerator<TKey, TData> : IFastIntersectEnumerator<TKe
 
     while (hasValue1 && hasValue2)
     {
-      int comparison = Enumerator1.CurrentKey.CompareTo(Enumerator2.CurrentKey);
+      int comparison = Compare(
+        Enumerator1.CurrentKey,
+        Enumerator1.CurrentData,
+        Enumerator2.CurrentKey,
+        Enumerator2.CurrentData
+      );
 
       if (comparison < 0)
       {
