@@ -417,9 +417,9 @@ public class DiskBTreeNode<TKey, TData>
       return this;
     }
 
-    DiskBTreeNode<TKey, TData> childNode = NodeFactory.LoadExisting(BTree, ChildrenArray[0]);
+    DiskBTreeNode<TKey, TData> childNode = NodeFactory.LoadExisting(BTree, ChildrenArray[this.KeysCount]);
     childNode.EnsureLoaded();
-    return childNode.GetFirstLeafNode();
+    return childNode.GetLastLeafNode();
   }
 
   public DiskBTreeNode<TKey, TData> Insert(TKey key, TData data)
