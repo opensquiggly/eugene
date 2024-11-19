@@ -165,4 +165,34 @@ public class BTreeTests
     // Clean Up
     File.Delete("testfile.dat");
   }
+
+  [TestMethod]
+  public void T006_NavigateToEndTest()
+  {
+    var dmb = new DiskBlockManager();
+    dmb.CreateOrOpen("btreetest.dat");
+
+    DiskBTreeFactory<int, int> btreeFactory = dmb.BTreeManager.CreateFactory<int, int>(dmb.IntBlockType, dmb.IntBlockType);
+    DiskBTree<int, int> btree1 = btreeFactory.AppendNew(5);
+
+    btree1.Insert(1, 123);
+    btree1.Insert(10, 456);
+    btree1.Insert(5, 789);
+    btree1.Insert(3, 1234);
+    btree1.Insert(2, 5678);
+    btree1.Insert(9, 3456);
+    btree1.Insert(7, 4567);
+    btree1.Insert(8, 9876);
+    btree1.Insert(6, 2222);
+    btree1.Insert(4, 3333);
+
+    var cursor = new DiskBTreeCursor<int, int>(btree1);
+
+    cursor.ResetToEnd();
+    cursor.MovePrevious();
+    cursor.CurrentKey.Should().Be(10, "Key should be 10");
+
+    // Clean Up
+    File.Delete("testfile.dat");
+  }
 }
